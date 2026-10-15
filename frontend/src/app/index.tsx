@@ -1,98 +1,120 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button, Text } from "expo-router/build/react-navigation";
+import { useEffect, useState } from "react";
+import { TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Checkbox } from "expo-checkbox";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+type Todo = {
+  id: string;
+  title: string;
+  completed: boolean;
+  createdAt: string;
+};
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+const BASE_URL = "http://localhost:3000/api/todos";
 
 export default function HomeScreen() {
+  const [title, setTitle] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [todos, setTodos] = useState<Todo[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const rawRes = await fetch(BASE_URL);
+        const todos = await rawRes.json();
+        setTodos(todos);
+      } catch {
+        setError("通信に失敗しました");
+      }
+    };
+    fetchData();
+  });
+
+  const handleAdd = async () => {
+    const rawRes = await fetch(BASE_URL, {
+      method: "POST",
+      body: JSON.stringify({ title: title }),
+    });
+    const res = await rawRes.json();
+    if (res.error) {
+      setError(res.error);
+      return;
+    } else {
+      const newTodo: Todo = res;
+      const newTodos: Todo[] = [...todos, newTodo];
+      setTodos(newTodos);
+      setTitle("");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const rawRes = await fetch(`${BASE_URL}/${id}`, {
+        method: "DELETE",
+      });
+      const res = await rawRes.json();
+      if (res.error) {
+        setError(res.error);
+      } else {
+        const newTodos = todos.filter((todo) => todo.id !== id);
+        setTodos(newTodos);
+      }
+    } catch {
+      setError("通信に失敗しました");
+    }
+  };
+
+  const handleToggle = async (id: string, completed: boolean) => {
+    try {
+      const rawRes = await fetch(`${BASE_URL}/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ completed: !completed }),
+      });
+      const res = await rawRes.json();
+      if (res.error) {
+        setError(res.error);
+      } else {
+        const newTodos = todos.map((todo) => ({
+          id: todo.id,
+          title: todo.title,
+          completed: todo.id === id ? !completed : completed,
+          createdAt: todo.createdAt,
+        }));
+      }
+    } catch {
+      setError("通信に失敗しました");
+    }
+  };
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
+    <SafeAreaView style={{ flex: 1 }}>
+      <View>
+        <Text>TODOアプリ</Text>
+        <View>
+          <TextInput
+            onChangeText={(value) => setTitle(value)}
+            value={title}
+            placeholder="タイトルを入力"
           />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+          <Button onPress={handleAdd}>追加</Button>
+        </View>
+        {error ? <Text>{error}</Text> : null}
+        <View>
+          {todos.map((todo) => {
+            return (
+              <View key={todo.id}>
+                <Text>{todo.title}</Text>
+                <Checkbox
+                  value={todo.completed}
+                  onValueChange={() => handleToggle(todo.id, todo.completed)}
+                  color={todo.completed ? "#4630EB" : undefined}
+                />
+                <Button onPress={() => handleDelete(todo.id)}>削除</Button>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});
