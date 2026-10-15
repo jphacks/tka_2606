@@ -100,7 +100,7 @@ export default function HomeScreen() {
         </View>
         {error ? <Text>{error}</Text> : null}
         <View>
-          {todos.map((todo) => {
+          {todos?.map((todo) => {
             return (
               <View key={todo.id}>
                 <Text>{todo.title}</Text>
