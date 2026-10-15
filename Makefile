@@ -4,7 +4,7 @@ dev:
 	$(MAKE) -j2 backend emulator
 
 frontend:
-	cd frontend && npx expo start
+	cd frontend && npm run dev
 
 backend:
 	cd backend && npm run dev
