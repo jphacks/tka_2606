@@ -10,6 +10,12 @@ import wallPushUp from "../assets/workouts/wall-push-up.gif";
 import pushUp from "../assets/workouts/push-up.gif";
 import squat from "../assets/workouts/squat.gif";
 import burpees from "../assets/workouts/burpees.gif";
+import standingCalfRaises from "../assets/workouts/standing-calf-raises.gif";
+import gluteBridges from "../assets/workouts/glute-bridges.gif";
+import forearmPlank from "../assets/workouts/forearm-plank.gif";
+import backExtensions from "../assets/workouts/back-extensions.gif";
+import fastPacedHighKnees from "../assets/workouts/fast-paced-high-knees.gif";
+import plyometricPushUps from "../assets/workouts/plyometric-push-ups.gif";
 
 const WORKOUT_IMAGES: Record<string, string> = {
   "standing-forward-bend.gif": standingForwardBend,
@@ -21,6 +27,12 @@ const WORKOUT_IMAGES: Record<string, string> = {
   "push-up.gif": pushUp,
   "squat.gif": squat,
   "burpees.gif": burpees,
+  "standing-calf-raises.gif": standingCalfRaises,
+  "glute-bridges.gif": gluteBridges,
+  "forearm-plank.gif": forearmPlank,
+  "back-extensions.gif": backExtensions,
+  "fast-paced-high-knees.gif": fastPacedHighKnees,
+  "plyometric-push-ups.gif": plyometricPushUps,
 };
 
 const INTENSITY_MULTIPLIER: Record<Intensity, number> = {
@@ -145,11 +157,18 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
         {overall}
         <p>休憩</p>
         <h2>次: {next.name}</h2>
-        <TimerRing key={index} remainingSec={remainingSec} progress={progress} variant="rest" />
+        <TimerRing
+          key={index}
+          remainingSec={remainingSec}
+          progress={progress}
+          variant="rest"
+        />
         <p className="sub">
           {current.nextExerciseIndex + 1}/{exercises.length}個目の準備をしよう
         </p>
-        <button onClick={() => setElapsedMs(segmentEnd * 1000)}>スキップ</button>
+        <button onClick={() => setElapsedMs(segmentEnd * 1000)}>
+          スキップ
+        </button>
         <button onClick={() => setPaused(!paused)}>
           {paused ? "再開" : "一時停止"}
         </button>
@@ -164,7 +183,12 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
       <p>
         {current.exerciseIndex + 1}/{exercises.length}個目
       </p>
-      <TimerRing key={index} remainingSec={remainingSec} progress={progress} variant="exercise" />
+      <TimerRing
+        key={index}
+        remainingSec={remainingSec}
+        progress={progress}
+        variant="exercise"
+      />
       <h2>{current.name}</h2>
       <p className="sub">
         次: {next ? `休憩${REST_SEC}秒 → ${next.name}` : "ラスト！"}
