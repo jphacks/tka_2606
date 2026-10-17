@@ -1,25 +1,65 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
+import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { env } from "../env.js";
 import { COLLECTIONS, db } from "../firebase.js";
+import { buildGoogleAuthUrl, fetchGoogleAccount } from "../services/google.js";
+import { endSession, startSession } from "../services/session.js";
 import type { User } from "../types.js";
 
 export const auth = new Hono();
 
-// TODO: Googleログインに置き換える。今は google_id をそのまま受け取る仮実装
-auth.post("/login", async (c) => {
-  const { google_id } = await c.req.json<{ google_id: string }>();
-  if (!google_id) {
-    return c.json({ error: "google_id is required" }, 400);
+const STATE_COOKIE = "oauth_state";
+
+// 1. ログインボタンからここに来る。Google のログイン画面へリダイレクトする
+auth.get("/google", (c) => {
+  // CSRF 対策: ランダムな state を Cookie に保存し、コールバックで照合する
+  const state = crypto.randomUUID();
+  setCookie(c, STATE_COOKIE, state, {
+    httpOnly: true,
+    sameSite: "Lax",
+    path: "/",
+    maxAge: 60 * 10,
+  });
+  return c.redirect(buildGoogleAuthUrl(state));
+});
+
+// 2. Google でログインすると、ここに戻ってくる (index.ts で GOOGLE_REDIRECT_PATH に登録)
+export async function handleGoogleCallback(c: Context) {
+  const { code, state, error } = c.req.query();
+  const savedState = getCookie(c, STATE_COOKIE);
+  deleteCookie(c, STATE_COOKIE, { path: "/" });
+
+  if (error || !code || !state || state !== savedState) {
+    return c.redirect(`${env.FRONTEND_URL}/?login_error=1`);
   }
 
+  try {
+    const { googleId } = await fetchGoogleAccount(code);
+    const { userId, isNew } = await findOrCreateUser(googleId);
+    await startSession(c, userId);
+    // 初回ログインならオンボーディング画面を出す
+    return c.redirect(`${env.FRONTEND_URL}/${isNew ? "?new_user=1" : ""}`);
+  } catch (e) {
+    console.error(e);
+    return c.redirect(`${env.FRONTEND_URL}/?login_error=1`);
+  }
+}
+
+auth.post("/logout", (c) => {
+  endSession(c);
+  return c.json({ message: "Logged out" });
+});
+
+// ユーザーがまだいなければ作成する (サインアップ)
+async function findOrCreateUser(googleId: string) {
   const users = db.collection(COLLECTIONS.users);
-  const snapshot = await users.where("google_id", "==", google_id).limit(1).get();
+  const snapshot = await users.where("google_id", "==", googleId).limit(1).get();
   if (!snapshot.empty) {
-    const doc = snapshot.docs[0];
-    return c.json({ user: { id: doc.id, ...doc.data() } as User, isNew: false });
+    return { userId: snapshot.docs[0].id, isNew: false };
   }
 
   const newUser: Omit<User, "id"> = {
-    google_id,
+    google_id: googleId,
     workout_level: 1,
     user_level: 1,
     current_streak: 0,
@@ -27,5 +67,5 @@ auth.post("/login", async (c) => {
     last_workout_at: null,
   };
   const docRef = await users.add(newUser);
-  return c.json({ user: { id: docRef.id, ...newUser }, isNew: true }, 201);
-});
+  return { userId: docRef.id, isNew: true };
+}

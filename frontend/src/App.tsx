@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, clearStoredUserId, getStoredUserId } from "./api/client";
+import { ApiError, api } from "./api/client";
 import { HomeScreen } from "./screens/HomeScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { OnboardingScreen } from "./screens/OnboardingScreen";
@@ -16,27 +16,43 @@ type Screen =
   | { name: "workout"; menu: WorkoutMenu; intensity: Intensity }
   | { name: "report"; result: WorkoutResult };
 
+// Google ログインから戻ってきたときは URL に new_user / login_error が付いている
+// 読み取ったら URL からは消しておく
+const loginParams = new URLSearchParams(window.location.search);
+window.history.replaceState(null, "", window.location.pathname);
+
 function App() {
-  const [screen, setScreen] = useState<Screen>(() =>
-    getStoredUserId() ? { name: "loading" } : { name: "login" },
-  );
+  const [screen, setScreen] = useState<Screen>({ name: "loading" });
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState("");
 
-  // 保存済みのユーザーがいればホームへ
+  // 起動時にログイン中か確認する
   useEffect(() => {
-    if (!getStoredUserId()) return;
     api
       .getMe()
       .then((user) => {
         setUser(user);
-        setScreen({ name: "home" });
+        setScreen(loginParams.has("new_user") ? { name: "onboarding" } : { name: "home" });
       })
-      .catch(() => {
-        clearStoredUserId();
+      .catch((e) => {
+        if (!(e instanceof ApiError && e.status === 401)) {
+          setError((e as Error).message);
+        } else if (loginParams.has("login_error")) {
+          setError("ログインに失敗しました。もう一度お試しください");
+        }
         setScreen({ name: "login" });
       });
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+      setUser(null);
+      setScreen({ name: "login" });
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
 
   const handleFinishWorkout = useCallback(async () => {
     if (screen.name !== "workout") return;
@@ -54,15 +70,7 @@ function App() {
       case "loading":
         return <p>読み込み中...</p>;
       case "login":
-        return (
-          <LoginScreen
-            onLogin={(user, isNew) => {
-              setUser(user);
-              setScreen(isNew ? { name: "onboarding" } : { name: "home" });
-            }}
-            onError={setError}
-          />
-        );
+        return <LoginScreen />;
       case "onboarding":
         return (
           <OnboardingScreen
@@ -78,6 +86,7 @@ function App() {
           <HomeScreen
             user={user}
             onStart={(menu, intensity) => setScreen({ name: "workout", menu, intensity })}
+            onLogout={handleLogout}
             onError={setError}
           />
         ) : null;

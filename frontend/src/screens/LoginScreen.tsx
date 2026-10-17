@@ -1,28 +1,11 @@
-import { api, setStoredUserId } from "../api/client";
-import type { User } from "../types";
+import { api } from "../api/client";
 
-type Props = {
-  onLogin: (user: User, isNew: boolean) => void;
-  onError: (message: string) => void;
-};
-
-export function LoginScreen({ onLogin, onError }: Props) {
-  const handleLogin = async () => {
-    try {
-      // TODO: Googleログインに置き換える。今はランダムIDで仮ログイン
-      const { user, isNew } = await api.login(`dummy-${crypto.randomUUID()}`);
-      setStoredUserId(user.id);
-      onLogin(user, isNew);
-    } catch (e) {
-      onError((e as Error).message);
-    }
-  };
-
+export function LoginScreen() {
   return (
     <div className="screen">
       <h1>アプリ名</h1>
       <p>3分だけ、体を動かそう</p>
-      <button className="primary" onClick={handleLogin}>
+      <button className="primary" onClick={api.loginWithGoogle}>
         Googleではじめる
       </button>
     </div>

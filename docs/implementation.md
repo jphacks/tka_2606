@@ -17,13 +17,31 @@ make frontend
 - バックエンドの起動時に、運動メニューが空なら仮メニュー3件が自動で登録される
 - エミュレータの中身は http://localhost:4000 （Emulator UI）で確認できる
 
+### 初回だけ必要な設定
+
+1. `backend/.env.example` を `backend/.env` にコピーし、`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `SESSION_SECRET` を設定する
+   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` はチーム内で共有する（Google Cloud Console の OAuth クライアント）
+   - `SESSION_SECRET` は `openssl rand -hex 32` で作った値でよい（各自で別の値でもよい）
+   - `.env` は Git に入らない。**シークレットはコミットやチャットに貼らない**
+2. Google Cloud Console > APIとサービス > 認証情報 > OAuth クライアント の「承認済みのリダイレクト URI」に次を登録する（チームで1回だけ）
+   ```
+   http://localhost:3000/callback
+   ```
+3. OAuth 同意画面が「テスト」状態のときは、ログインに使う Google アカウントを「テストユーザー」に追加する
+
+注意
+
+- ブラウザは `http://localhost:5173` で開く（`127.0.0.1` だとセッションの Cookie が送られない）
+- Firestore のデータはエミュレータを止めると消える。もう一度ログインすると新しいユーザーとして作り直される
+
 ---
 
 ## 実装した機能
 
 | 機能 | 状態 | 実装箇所 |
 | --- | --- | --- |
-| サインイン／サインアップ | △ 仮実装（ランダムIDでログイン） | `routes/auth.ts` / `LoginScreen.tsx` |
+| サインイン／サインアップ | ○ Google の OAuth でログイン（初回はユーザーを作成） | `routes/auth.ts` / `services/google.ts` / `LoginScreen.tsx` |
+| ログアウト | ○ ホーム画面下のボタン | `routes/auth.ts` / `App.tsx` / `HomeScreen.tsx` |
 | 運動ランク診断（アンケート） | ○ 3択で `workout_level` を保存 | `routes/users.ts` / `OnboardingScreen.tsx` |
 | とりあえずこれやれ機能 | ○ 運動レベルに合うメニューを1つ表示 | `routes/menus.ts` / `HomeScreen.tsx` |
 | 時間の＋／－ボタン | ○ 弱・普通・強の3段階 | `HomeScreen.tsx` |
@@ -46,14 +64,44 @@ make frontend
 
 | 画面 | ファイル | 主な要素 |
 | --- | --- | --- |
-| ログイン | `frontend/src/screens/LoginScreen.tsx` | 「Googleではじめる」ボタン（今は仮ログイン） |
+| ログイン | `frontend/src/screens/LoginScreen.tsx` | 「Googleではじめる」ボタン |
 | オンボーディング | `frontend/src/screens/OnboardingScreen.tsx` | 「今のあなたの運動レベルは？」3択 |
-| ホーム | `frontend/src/screens/HomeScreen.tsx` | ストリーク、レベル、今日のメニュー、＋／－ボタン、スタートボタン、今日の完了人数 |
+| ホーム | `frontend/src/screens/HomeScreen.tsx` | ストリーク、レベル、今日のメニュー、＋／－ボタン、スタートボタン、今日の完了人数、ログアウト |
 | 運動中 | `frontend/src/screens/WorkoutScreen.tsx` | 何個目か、種目名、残り時間、次の種目、一時停止ボタン |
 | レポート | `frontend/src/screens/ReportScreen.tsx` | 「クリア！お疲れ様」、ストリーク更新、運動時間、消費カロリー、獲得XP、次のレベルまでのXP |
 
 - 画面の切り替えはルーターを使わず、`App.tsx` の state で管理している
-- ログインしたユーザーのIDは localStorage に保存し、次回からはホームから始まる
+- ログイン状態はセッションの Cookie に保存されるので、30日間は次回からホームから始まる
+
+---
+
+## ログイン・ログアウトの仕組み
+
+Google の OAuth 2.0（OpenID Connect）の認可コードフローをバックエンドで行い、ログイン状態は HttpOnly の Cookie で管理する。Firebase Authentication は使っていない。
+
+```
+[ブラウザ]                 [バックエンド]                       [Google]
+「Googleではじめる」
+  └─> GET /api/auth/google ─> state を Cookie に保存
+                              Google のログイン画面へリダイレクト ─> アカウントを選ぶ
+                                                                    │
+      GET /callback?code=...&state=... <────────────────────┘
+                              state を照合 (CSRF 対策)
+                              code を IDトークンに交換 (client_secret を使う)
+                              IDトークンを Google の公開鍵で検証
+                              users に google_id がなければ作成
+                              session Cookie (JWT) を発行
+  <── フロントへリダイレクト (初回は ?new_user=1)
+GET /api/users/me (Cookie 付き) で状態を確認 ─> 初回はオンボーディング、それ以外はホーム
+
+ログアウト: POST /api/auth/logout ─> Cookie を削除 ─> ログイン画面
+```
+
+- `client_secret` はバックエンドだけが持つ。フロントには出さない
+- セッションの Cookie の中身は、ユーザーID（`users` のドキュメントID）を入れて `SESSION_SECRET` で署名した JWT。有効期限は30日
+- `users` のドキュメントIDは自動採番。`google_id` には Google アカウントのID（IDトークンの `sub`）を入れる
+- ログインに失敗したとき（キャンセルした、state が合わない等）は `?login_error=1` を付けてフロントに戻し、ログイン画面にメッセージを出す
+- バックエンドの `requireAuth`（`backend/src/middleware.ts`）が Cookie を検証し、ルートでは `getUserId(c)` でユーザーIDを取り出す
 
 ---
 
@@ -61,19 +109,21 @@ make frontend
 
 ベースURL：`http://localhost:3000/api`
 
-ログイン以外のAPIは、リクエストヘッダー `X-User-Id` にユーザーIDが必要（仮の認証）。
+🔒 のAPIは、ログイン中（セッションの Cookie が有効）でなければ 401 を返す。フロントからは `credentials: "include"` を付けて呼ぶ。
 
 | メソッド | パス | 内容 |
 | --- | --- | --- |
-| POST | `/auth/login` | `google_id` でログイン。ユーザーがいなければ作成する（`isNew: true`） |
-| GET | `/users/me` | 自分のユーザー情報 |
-| PATCH | `/users/me/workout-level` | 運動レベル（1〜3）を変更する |
+| GET | `/auth/google` | Google のログイン画面へリダイレクトする（ブラウザで開く） |
+| GET | `/callback`（`/api` なし） | Google からの戻り先。ログインに成功したらセッションを作ってフロントへリダイレクトする |
+| POST | `/auth/logout` | セッションの Cookie を消す |
+| GET | `/users/me` 🔒 | 自分のユーザー情報 |
+| PATCH | `/users/me/workout-level` 🔒 | 運動レベル（1〜3）を変更する |
 | GET | `/menus?sort=duration\|difficulty\|calories` | メニュー一覧（時間・難易度・カロリー順） |
-| GET | `/menus/today` | 今日のメニューを1つ返す（とりあえずこれやれ） |
+| GET | `/menus/today` 🔒 | 今日のメニューを1つ返す（とりあえずこれやれ） |
 | GET | `/menus/:id` | メニュー詳細 |
-| POST | `/workouts` | 運動完了を記録し、ストリーク・XP・レベルを更新する |
+| POST | `/workouts` 🔒 | 運動完了を記録し、ストリーク・XP・レベルを更新する |
 | GET | `/workouts/today/count` | 今日運動を完了した人数 |
-| GET | `/reports/today` | 自分の今日の運動レポート |
+| GET | `/reports/today` 🔒 | 自分の今日の運動レポート |
 
 ### `POST /workouts` のレスポンス例
 
@@ -141,11 +191,14 @@ make frontend
 ```
 backend/src/
 ├── index.ts            # アプリ本体（CORS、ルーティング、エラー処理）
+├── env.ts              # backend/.env の読み込み
 ├── firebase.ts         # Firestore の初期化、コレクション名
-├── middleware.ts       # X-User-Id からユーザーIDを取得（仮の認証）
+├── middleware.ts       # ログイン中か確認する（requireAuth）
 ├── seed.ts             # 仮メニューの登録
 ├── types.ts            # データモデルの型
 ├── services/
+│   ├── google.ts       # Google の OAuth（ログイン画面のURL作成、IDトークンの検証）
+│   ├── session.ts      # セッションの Cookie（JWT）の発行・検証・削除
 │   └── progress.ts     # XP・レベル・ストリークの計算
 └── routes/
     ├── auth.ts
@@ -155,7 +208,7 @@ backend/src/
     └── reports.ts
 
 frontend/src/
-├── App.tsx             # 画面の切り替え
+├── App.tsx             # 画面の切り替え、起動時のログイン確認、ログアウト
 ├── App.css
 ├── types.ts            # backend/src/types.ts と同じ型
 ├── api/
@@ -173,7 +226,6 @@ frontend/src/
 ## まだやっていないこと（TODO）
 
 ### 仮実装を置き換えるもの
-- **Googleログイン**：今はランダムIDでログインし、`X-User-Id` ヘッダーをそのまま信用しているので安全ではない。Firebase Authentication などに置き換える
 - **今日のメニューの選び方**：今は日替わりで選んでいるだけ。前回と被らないようにする等
 
 ### 未実装の機能
@@ -184,5 +236,9 @@ frontend/src/
 - A tier：運動の効果表示
 
 ### 本番で必要になること
+- **本番の Firestore への接続**：今は Firestore を常にエミュレータにつないでいる（`backend/src/firebase.ts`）。本番ではエミュレータの設定を外し、サービスアカウントの鍵か Cloud Run などの自動認証で接続する
+- 公開先の `https://.../callback` を Google Cloud Console の「承認済みのリダイレクト URI」に追加し、`backend/.env` の `BACKEND_URL` / `FRONTEND_URL` を設定する
+- フロントとバックエンドを別ドメインで公開すると、セッションの Cookie が送られない（SameSite=Lax のため）。同じドメインにまとめるか、Cookie の設定を見直す
+- OAuth 同意画面を「本番環境」に公開する（テスト状態だとテストユーザーしかログインできない）
 - `GET /reports/today` は `user_id` と `completed_at` の2条件で検索しているため、本番の Firestore では複合インデックスの作成が必要（エミュレータでは不要）
 - フロントの型 `frontend/src/types.ts` はバックエンドの型を手でコピーしているので、変更するときは両方を直す
