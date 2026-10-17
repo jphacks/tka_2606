@@ -46,10 +46,6 @@ function App() {
       });
   }, []);
 
-  const updateWorkoutLevel = (workout_level: number) => {
-    setUser((u) => (u ? { ...u, workout_level } : u));
-  };
-
   const handleLogout = async () => {
     try {
       await api.logout();
@@ -60,10 +56,17 @@ function App() {
     }
   };
 
+  const updateWorkoutLevel = (workoutLevel: number) => {
+    setUser((u) => (u ? { ...u, workout_level: workoutLevel } : u));
+  };
+
   const handleFinishWorkout = useCallback(async () => {
     if (screen.name !== "workout") return;
     try {
-      const result = await api.completeWorkout(screen.menu.id, screen.intensity);
+      const result = await api.completeWorkout(
+        screen.menu.id,
+        screen.intensity,
+      );
       setUser(result.user);
       setScreen({ name: "report", result });
     } catch (e) {
@@ -87,7 +90,9 @@ function App() {
         return (
           <HomeScreen
             user={user}
-            onStart={(menu, intensity) => setScreen({ name: "workout", menu, intensity })}
+            onStart={(menu, intensity) =>
+              setScreen({ name: "workout", menu, intensity })
+            }
             onChangeWorkoutLevel={updateWorkoutLevel}
             onLogout={handleLogout}
             onError={setError}

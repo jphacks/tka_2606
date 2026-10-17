@@ -24,12 +24,17 @@ type Props = {
   onError: (message: string) => void;
 };
 
-export function HomeScreen({ user, onStart, onChangeWorkoutLevel, onLogout, onError }: Props) {
+export function HomeScreen({
+  user,
+  onStart,
+  onChangeWorkoutLevel,
+  onLogout,
+  onError,
+}: Props) {
   const [menu, setMenu] = useState<WorkoutMenu | null>(null);
   const [todayCount, setTodayCount] = useState(0);
   const [intensity, setIntensity] = useState<Intensity>("normal");
 
-  // 運動レベルが変わったら、今日のメニューを取り直す
   useEffect(() => {
     let ignore = false; // レベルを素早く切り替えたとき、古い結果で上書きしない
     const fetchData = async () => {
@@ -82,7 +87,7 @@ export function HomeScreen({ user, onStart, onChangeWorkoutLevel, onLogout, onEr
           <p>今日のメニュー</p>
           <h2>{menu.title}</h2>
           <p>
-            難易度 {menu.target_workout_level} ／ 約
+            全{menu.exercises.length}種目 ／ 約
             {Math.round(menu.base_calories * m)}kcal
           </p>
           <div className="stepper">

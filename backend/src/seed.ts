@@ -1,55 +1,56 @@
 import { COLLECTIONS, db } from "./firebase.js";
 import type { WorkoutMenu } from "./types.js";
 
-// 初期メニュー (仮データ)
 const MENUS: WorkoutMenu[] = [
   {
-    id: "lv1-stretch",
-    title: "3分間ストレッチ",
-    description: "ベッドの横でできる、体を起こすためのストレッチ",
+    id: "gif-workout-easy",
+    title: "ゆるめトレーニング",
+    description: "体を起こす軽めのトレーニング",
     target_workout_level: 1,
-    base_duration_sec: 180,
+    base_duration_sec: 60,
     base_calories: 10,
     exercises: [
-      { name: "首・肩まわし", duration_sec: 60 },
-      { name: "前屈", duration_sec: 60 },
-      { name: "その場足踏み", duration_sec: 60 },
+      { name: "前屈", duration_sec: 20, image: "standing-forward-bend.gif" },
+      { name: "腿上げ", duration_sec: 20, image: "high-knees.gif" },
+      { name: "壁腕立て伏せ", duration_sec: 20, image: "wall-push-up.gif" },
     ],
   },
   {
-    id: "lv2-circuit",
-    title: "3分間サーキット",
-    description: "軽めの筋トレと有酸素を組み合わせたサーキット",
+    id: "gif-workout-normal",
+    title: "ふつうトレーニング",
+    description: "筋トレと有酸素運動を組み合わせたトレーニング",
     target_workout_level: 2,
-    base_duration_sec: 180,
+    base_duration_sec: 60,
     base_calories: 20,
     exercises: [
-      { name: "スクワット", duration_sec: 60 },
-      { name: "膝つき腕立て", duration_sec: 60 },
-      { name: "もも上げ", duration_sec: 60 },
+      { name: "腕立て伏せ", duration_sec: 20, image: "push-up.gif" },
+      { name: "スクワット", duration_sec: 20, image: "squat.gif" },
+      { name: "腹筋", duration_sec: 20, image: "abs.gif" },
     ],
   },
   {
-    id: "lv3-hiit",
-    title: "4分間HIIT",
-    description: "短時間でしっかり心拍数を上げるインターバルトレーニング",
+    id: "gif-workout-hard",
+    title: "しっかりトレーニング",
+    description: "心拍数をしっかり上げるトレーニング",
     target_workout_level: 3,
-    base_duration_sec: 240,
-    base_calories: 40,
+    base_duration_sec: 60,
+    base_calories: 30,
     exercises: [
-      { name: "ジャンピングジャック", duration_sec: 60 },
-      { name: "バーピー", duration_sec: 60 },
-      { name: "マウンテンクライマー", duration_sec: 60 },
-      { name: "スクワットジャンプ", duration_sec: 60 },
+      { name: "バーピー", duration_sec: 20, image: "burpees.gif" },
+      { name: "V字腹筋", duration_sec: 20, image: "v-up.gif" },
+      {
+        name: "片足スクワット",
+        duration_sec: 20,
+        image: "single-leg-squat.gif",
+      },
     ],
   },
 ];
 
 export async function seedMenus() {
-  const snapshot = await db.collection(COLLECTIONS.menus).limit(1).get();
-  if (!snapshot.empty) return;
-
   const batch = db.batch();
+  const snapshot = await db.collection(COLLECTIONS.menus).get();
+  for (const doc of snapshot.docs) batch.delete(doc.ref);
   for (const { id, ...menu } of MENUS) {
     batch.set(db.collection(COLLECTIONS.menus).doc(id), menu);
   }
