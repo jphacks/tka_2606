@@ -125,6 +125,63 @@
   border-radius: 8px;
 }
 
+/* 運動中の円形ゲージ */
+.timer-ring {
+  --ring-color: var(--accent);
+  position: relative;
+  width: min(200px, 60vw);
+  aspect-ratio: 1;
+}
+
+.timer-ring.rest {
+  --ring-color: #10b981;
+}
+
+.timer-ring svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* 12時の位置から減らす */
+}
+
+.timer-ring circle {
+  fill: none;
+  stroke-width: 14;
+}
+
+.timer-ring-track {
+  stroke: var(--border);
+}
+
+.timer-ring-bar {
+  stroke: var(--ring-color);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.1s linear;
+}
+
+.timer-ring .timer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+}
+
+/* 運動中画面の上の、全体の進み具合 */
+.overall-progress {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.overall-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.1s linear;
+}
+
 .sub {
   font-size: 14px;
 }

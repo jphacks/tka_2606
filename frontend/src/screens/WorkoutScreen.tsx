@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { TimerRing } from "../components/TimerRing";
 import type { Intensity, WorkoutMenu } from "../types";
 import standingForwardBend from "../assets/workouts/standing-forward-bend.gif";
 import abs from "../assets/workouts/abs.gif";
@@ -30,6 +31,9 @@ const INTENSITY_MULTIPLIER: Record<Intensity, number> = {
 
 // 種目と種目の間の休憩 (クールタイム) の秒数
 const REST_SEC = 5;
+
+// ゲージを滑らかに動かすため、0.1秒ごとに経過時間を進める
+const TICK_MS = 100;
 
 // タイマーの区切り。種目と休憩を交互に並べる (最後の種目のあとに休憩はない)
 type Segment =
@@ -83,13 +87,21 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
   );
   const totalSec = segments.reduce((sum, s) => sum + s.duration_sec, 0);
 
-  const [elapsed, setElapsed] = useState(0);
+  const [elapsedMs, setElapsedMs] = useState(0);
   const [paused, setPaused] = useState(false);
   const finished = useRef(false);
+  const elapsed = elapsedMs / 1000;
 
+  // 実際に経った時間を足していく (タブが裏に回って setInterval が遅れてもずれない)
   useEffect(() => {
     if (paused) return;
-    const timer = setInterval(() => setElapsed((e) => e + 1), 1000);
+    let last = performance.now();
+    const timer = setInterval(() => {
+      const now = performance.now();
+      const delta = now - last;
+      last = now;
+      setElapsedMs((e) => e + delta);
+    }, TICK_MS);
     return () => clearInterval(timer);
   }, [paused]);
 
@@ -113,18 +125,31 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
   const current = segments[index];
   const segmentEnd = start + current.duration_sec;
   const remaining = Math.max(segmentEnd - elapsed, 0);
+  const remainingSec = Math.ceil(remaining);
+  const progress = remaining / current.duration_sec;
+
+  // 全体の進み具合のバー
+  const overall = (
+    <div className="overall-progress" aria-label="全体の進み具合">
+      <div
+        className="overall-progress-bar"
+        style={{ width: `${Math.min(elapsed / totalSec, 1) * 100}%` }}
+      />
+    </div>
+  );
 
   if (current.type === "rest") {
     const next = exercises[current.nextExerciseIndex];
     return (
       <div className="screen">
+        {overall}
         <p>休憩</p>
         <h2>次: {next.name}</h2>
-        <p className="timer">{remaining}秒</p>
+        <TimerRing key={index} remainingSec={remainingSec} progress={progress} variant="rest" />
         <p className="sub">
           {current.nextExerciseIndex + 1}/{exercises.length}個目の準備をしよう
         </p>
-        <button onClick={() => setElapsed(segmentEnd)}>スキップ</button>
+        <button onClick={() => setElapsedMs(segmentEnd * 1000)}>スキップ</button>
         <button onClick={() => setPaused(!paused)}>
           {paused ? "再開" : "一時停止"}
         </button>
@@ -135,22 +160,23 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
   const next = exercises[current.exerciseIndex + 1];
   return (
     <div className="screen">
+      {overall}
       <p>
         {current.exerciseIndex + 1}/{exercises.length}個目
       </p>
-      <img
-        className="workout-gif"
-        src={WORKOUT_IMAGES[current.image]}
-        alt={current.name}
-      />
+      <TimerRing key={index} remainingSec={remainingSec} progress={progress} variant="exercise" />
       <h2>{current.name}</h2>
-      <p className="timer">{remaining}秒</p>
       <p className="sub">
         次: {next ? `休憩${REST_SEC}秒 → ${next.name}` : "ラスト！"}
       </p>
       <button onClick={() => setPaused(!paused)}>
         {paused ? "再開" : "一時停止"}
       </button>
+      <img
+        className="workout-gif"
+        src={WORKOUT_IMAGES[current.image]}
+        alt={current.name}
+      />
     </div>
   );
 }
