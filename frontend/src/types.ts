@@ -48,3 +48,11 @@ export type WorkoutResult = {
   leveled_up: boolean;
   xp_to_next_level: number;
 };
+
+// カレンダーの1日分 (運動した日だけ返す)
+export type CalendarDay = {
+  date: string; // 日本時間の日付 "2026-10-17"
+  count: number; // その日に運動した回数
+  total_duration_sec: number;
+  total_calories: number;
+};

@@ -51,6 +51,7 @@ make frontend
 | ストリーク機能 | ○ 連続日数を自動更新 | `services/progress.ts` |
 | レベル上げ機能 | ○ XPに応じて自動でレベルアップ | `services/progress.ts` |
 | 今日の完了人数 | ○ ホーム画面に表示 | `routes/workouts.ts` |
+| カレンダー | ○ ホーム画面に月のカレンダー。運動した日に印をつける | `routes/reports.ts` / `components/Calendar.tsx` |
 | 並べ替え機能 | △ APIのみ（画面は未作成） | `routes/menus.ts` |
 
 ---
@@ -67,7 +68,7 @@ make frontend
 | --- | --- | --- |
 | ログイン | `frontend/src/screens/LoginScreen.tsx` | 「Googleではじめる」ボタン |
 | オンボーディング | `frontend/src/screens/OnboardingScreen.tsx` | 「今のあなたの運動レベルは？」3択 |
-| ホーム | `frontend/src/screens/HomeScreen.tsx` | ストリーク、レベル、今日のメニュー、＋／－ボタン、スタートボタン、今日の完了人数、右上のアカウントメニュー（名前・メールアドレス・ログアウト） |
+| ホーム | `frontend/src/screens/HomeScreen.tsx` | ストリーク、レベル、今日のメニュー、＋／－ボタン、スタートボタン、今日の完了人数、カレンダー（運動した日に印）、右上のアカウントメニュー（名前・メールアドレス・ログアウト） |
 | 運動中 | `frontend/src/screens/WorkoutScreen.tsx` | 何個目か、種目名、残り時間、次の種目、一時停止ボタン |
 | レポート | `frontend/src/screens/ReportScreen.tsx` | 「クリア！お疲れ様」、ストリーク更新、運動時間、消費カロリー、獲得XP、次のレベルまでのXP |
 
@@ -125,6 +126,7 @@ GET /api/users/me (Cookie 付き) で状態を確認 ─> 初回はオンボー�
 | POST | `/workouts` 🔒 | 運動完了を記録し、ストリーク・XP・レベルを更新する |
 | GET | `/workouts/today/count` | 今日運動を完了した人数 |
 | GET | `/reports/today` 🔒 | 自分の今日の運動レポート |
+| GET | `/reports/calendar?month=2026-10` 🔒 | 指定した月に運動した日の一覧（日ごとの回数・運動時間・消費カロリー）。`month` を省略すると今月 |
 
 ### `POST /workouts` のレスポンス例
 
@@ -155,6 +157,7 @@ GET /api/users/me (Cookie 付き) で状態を確認 ─> 初回はオンボー�
 | ストリーク | 最後の運動が昨日なら +1、今日なら据え置き、それより前なら 1 に戻る（日本時間で判定） |
 | 今日のメニュー | 運動レベルが同じメニューの中から日替わりで1つ選ぶ |
 | 今日の完了人数 | 今日の WorkoutLog のユーザー数（同じ人が何回やっても1人） |
+| カレンダーの印 | その日（日本時間）に WorkoutLog が1件以上ある日 |
 
 ---
 
@@ -221,7 +224,8 @@ frontend/src/
 ├── api/
 │   └── client.ts       # API クライアント
 ├── components/
-│   └── AccountMenu.tsx # 右上のアカウントアイコンとメニュー
+│   ├── AccountMenu.tsx # 右上のアカウントアイコンとメニュー
+│   └── Calendar.tsx    # ホーム画面のカレンダー
 └── screens/
     ├── LoginScreen.tsx
     ├── OnboardingScreen.tsx
@@ -249,5 +253,5 @@ frontend/src/
 - 公開先の `https://.../callback` を Google Cloud Console の「承認済みのリダイレクト URI」に追加し、`backend/.env` の `BACKEND_URL` / `FRONTEND_URL` を設定する
 - フロントとバックエンドを別ドメインで公開すると、セッションの Cookie が送られない（SameSite=Lax のため）。同じドメインにまとめるか、Cookie の設定を見直す
 - OAuth 同意画面を「本番環境」に公開する（テスト状態だとテストユーザーしかログインできない）
-- `GET /reports/today` は `user_id` と `completed_at` の2条件で検索しているため、本番の Firestore では複合インデックスの作成が必要（エミュレータでは不要）
+- `GET /reports/today` と `GET /reports/calendar` は `user_id` と `completed_at` の2条件で検索しているため、本番の Firestore では複合インデックスの作成が必要（エミュレータでは不要）
 - フロントの型 `frontend/src/types.ts` はバックエンドの型を手でコピーしているので、変更するときは両方を直す
