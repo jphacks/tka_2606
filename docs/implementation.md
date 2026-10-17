@@ -46,7 +46,7 @@ make frontend
 | 運動ランク診断（アンケート） | ○ 3択で `workout_level` を保存 | `routes/users.ts` / `OnboardingScreen.tsx` |
 | とりあえずこれやれ機能 | ○ 運動レベルに合うメニューを1つ表示 | `routes/menus.ts` / `HomeScreen.tsx` |
 | 時間の＋／－ボタン | ○ 弱・普通・強の3段階 | `HomeScreen.tsx` |
-| 運動中のタイマー | ○ 何個目か・残り時間・次の種目・一時停止 | `WorkoutScreen.tsx` |
+| 運動中のタイマー | ○ 何個目か・残り時間・次の種目・一時停止・種目間の休憩 | `WorkoutScreen.tsx` |
 | 今日の運動レポート | ○ 運動時間・消費カロリー・獲得XP | `routes/reports.ts` / `ReportScreen.tsx` |
 | ストリーク機能 | ○ 連続日数を自動更新 | `services/progress.ts` |
 | レベル上げ機能 | ○ XPに応じて自動でレベルアップ | `services/progress.ts` |
@@ -69,7 +69,7 @@ make frontend
 | ログイン | `frontend/src/screens/LoginScreen.tsx` | 「Googleではじめる」ボタン |
 | オンボーディング | `frontend/src/screens/OnboardingScreen.tsx` | 「今のあなたの運動レベルは？」3択 |
 | ホーム | `frontend/src/screens/HomeScreen.tsx` | ストリーク、レベル、今日のメニュー、＋／－ボタン、スタートボタン、今日の完了人数、カレンダー（運動した日に印）、右上のアカウントメニュー（名前・メールアドレス・ログアウト） |
-| 運動中 | `frontend/src/screens/WorkoutScreen.tsx` | 何個目か、種目名、残り時間、次の種目、一時停止ボタン |
+| 運動中 | `frontend/src/screens/WorkoutScreen.tsx` | 何個目か、種目名、残り時間、次の種目、一時停止ボタン。種目の間に休憩（次の種目名、残り時間、スキップボタン） |
 | レポート | `frontend/src/screens/ReportScreen.tsx` | 「クリア！お疲れ様」、ストリーク更新、運動時間、消費カロリー、獲得XP、次のレベルまでのXP |
 
 - 画面の切り替えはルーターを使わず、`App.tsx` の state で管理している
@@ -156,6 +156,7 @@ GET /api/users/me (Cookie 付き) で状態を確認 ─> 初回はオンボー�
 | ユーザーレベル | 100XP ごとに1つ上がる（上がり方は一定） |
 | ストリーク | 最後の運動が昨日なら +1、今日なら据え置き、それより前なら 1 に戻る（日本時間で判定） |
 | 今日のメニュー | 運動レベルが同じメニューの中から日替わりで1つ選ぶ |
+| 種目間の休憩 | 種目と種目の間に5秒（`WorkoutScreen.tsx` の `REST_SEC`）。最後の種目のあとにはない。運動時間・消費カロリー・XPには含めない |
 | 今日の完了人数 | 今日の WorkoutLog のユーザー数（同じ人が何回やっても1人） |
 | カレンダーの印 | その日（日本時間）に WorkoutLog が1件以上ある日 |
 
