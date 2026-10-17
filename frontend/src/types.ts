@@ -18,6 +18,7 @@ export type User = {
 export type Exercise = {
   name: string;
   duration_sec: number;
+  image: string;
 };
 
 export type WorkoutMenu = {

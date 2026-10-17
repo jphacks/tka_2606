@@ -3,16 +3,16 @@ export const WORKOUT_LEVELS = [
   {
     level: 1,
     name: "ゆるめ",
-    description: "ほとんど運動していない人向け。ストレッチや足踏みなど、体を起こす軽い運動",
+    description: "壁腕立て・腿上げ・前屈の軽い運動",
   },
   {
     level: 2,
     name: "ふつう",
-    description: "たまに歩く程度の人向け。軽い筋トレと有酸素運動の組み合わせ",
+    description: "腕立て・スクワット・腹筋の標準的な運動",
   },
   {
     level: 3,
     name: "しっかり",
-    description: "少し体力に自信がある人向け。心拍数をしっかり上げるインターバル運動",
+    description: "バーピー・V字腹筋・片足スクワットの強い運動",
   },
 ];
