@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { COLLECTIONS, db } from "../firebase.js";
 import { getUserId } from "../middleware.js";
+import { buildCustomMenu, isCustomMenuSelected } from "../services/customMenu.js";
 import type { User, WorkoutMenu } from "../types.js";
 
 export const menus = new Hono();
@@ -29,6 +30,10 @@ menus.get("/today", async (c) => {
     return c.json({ error: "User not found" }, 404);
   }
   const user = userDoc.data() as User;
+  // ホームの運動レベルで「カスタム」を選んでいれば、カスタムメニューを返す
+  if (isCustomMenuSelected(user.custom_menu)) {
+    return c.json(buildCustomMenu(user.custom_menu));
+  }
   const snapshot = await db
     .collection(COLLECTIONS.menus)
     .where("target_workout_level", "==", user.workout_level)
