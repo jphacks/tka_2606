@@ -39,6 +39,8 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ workout_level }),
     }),
+  getMenus: (sort?: "calories" | "difficulty") =>
+    request<WorkoutMenu[]>(`/menus${sort ? `?sort=${sort}` : ""}`),
   getTodayMenu: () => request<WorkoutMenu>("/menus/today"),
   getTodayReport: () => request<TodayReport>("/reports/today"),
   getTodayCount: () => request<{ count: number }>("/workouts/today/count"),

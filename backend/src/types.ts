@@ -20,6 +20,8 @@ export type Exercise = {
   name: string;
   duration_sec: number;
   image: string;
+  body_part: string;
+  calories: number;
 };
 
 export type WorkoutMenu = {
@@ -29,6 +31,7 @@ export type WorkoutMenu = {
   target_workout_level: number; // このメニューが対象とする運動レベル
   base_duration_sec: number;
   base_calories: number;
+  body_parts: string[];
   exercises: Exercise[]; // 運動中画面の「何個目か・次の種目」表示用 (table.md への追加)
 };
 
