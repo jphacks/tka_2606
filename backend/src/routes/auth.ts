@@ -35,10 +35,9 @@ export async function handleGoogleCallback(c: Context) {
 
   try {
     const account = await fetchGoogleAccount(code);
-    const { userId, isNew } = await findOrCreateUser(account);
+    const userId = await findOrCreateUser(account);
     await startSession(c, userId);
-    // 初回ログインならオンボーディング画面を出す
-    return c.redirect(`${env.FRONTEND_URL}/${isNew ? "?new_user=1" : ""}`);
+    return c.redirect(`${env.FRONTEND_URL}/`);
   } catch (e) {
     console.error(e);
     return c.redirect(`${env.FRONTEND_URL}/?login_error=1`);
@@ -64,18 +63,18 @@ async function findOrCreateUser(account: GoogleAccount) {
   if (!snapshot.empty) {
     const doc = snapshot.docs[0];
     await doc.ref.update(profile);
-    return { userId: doc.id, isNew: false };
+    return doc.id;
   }
 
   const newUser: Omit<User, "id"> = {
     google_id: account.googleId,
     ...profile,
-    workout_level: 1,
+    workout_level: 1, // 最初は一番やさしいレベル。ホーム画面で変更できる
     user_level: 1,
     current_streak: 0,
     total_xp: 0,
     last_workout_at: null,
   };
   const docRef = await users.add(newUser);
-  return { userId: docRef.id, isNew: true };
+  return docRef.id;
 }

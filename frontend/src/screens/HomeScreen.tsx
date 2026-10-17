@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { AccountMenu } from "../components/AccountMenu";
 import { Calendar } from "../components/Calendar";
+import { WorkoutLevelSelector } from "../components/WorkoutLevelSelector";
 import type { Intensity, User, WorkoutMenu } from "../types";
 
 const INTENSITIES: Intensity[] = ["low", "normal", "high"];
@@ -19,22 +20,26 @@ const INTENSITY_MULTIPLIER: Record<Intensity, number> = {
 type Props = {
   user: User;
   onStart: (menu: WorkoutMenu, intensity: Intensity) => void;
+  onChangeWorkoutLevel: (workoutLevel: number) => void;
   onLogout: () => void;
   onError: (message: string) => void;
 };
 
-export function HomeScreen({ user, onStart, onLogout, onError }: Props) {
+export function HomeScreen({ user, onStart, onChangeWorkoutLevel, onLogout, onError }: Props) {
   const [menu, setMenu] = useState<WorkoutMenu | null>(null);
   const [todayCount, setTodayCount] = useState(0);
   const [intensity, setIntensity] = useState<Intensity>("normal");
 
+  // 運動レベルが変わったら、今日のメニューを取り直す
   useEffect(() => {
+    let ignore = false; // レベルを素早く切り替えたとき、古い結果で上書きしない
     const fetchData = async () => {
       try {
         const [menu, { count }] = await Promise.all([
           api.getTodayMenu(),
           api.getTodayCount(),
         ]);
+        if (ignore) return;
         setMenu(menu);
         setTodayCount(count);
       } catch (e) {
@@ -42,6 +47,9 @@ export function HomeScreen({ user, onStart, onLogout, onError }: Props) {
       }
     };
     fetchData();
+    return () => {
+      ignore = true;
+    };
   }, [user.workout_level, onError]);
 
   // 時間の＋／－ボタン
@@ -63,6 +71,12 @@ export function HomeScreen({ user, onStart, onLogout, onError }: Props) {
         </div>
         <AccountMenu user={user} onLogout={onLogout} />
       </header>
+
+      <WorkoutLevelSelector
+        workoutLevel={user.workout_level}
+        onChange={onChangeWorkoutLevel}
+        onError={onError}
+      />
 
       {menu ? (
         <div className="card">

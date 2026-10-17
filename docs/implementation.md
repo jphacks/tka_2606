@@ -43,7 +43,6 @@ make frontend
 | サインイン／サインアップ | ○ Google の OAuth でログイン（初回はユーザーを作成） | `routes/auth.ts` / `services/google.ts` / `LoginScreen.tsx` |
 | アカウント表示 | ○ ホーム画面右上にGoogleのアイコン。押すと名前・メールアドレスを表示 | `components/AccountMenu.tsx` |
 | ログアウト | ○ 右上のアカウントメニューの中 | `routes/auth.ts` / `App.tsx` / `components/AccountMenu.tsx` |
-| 運動ランク診断（アンケート） | ○ 3択で `workout_level` を保存 | `routes/users.ts` / `OnboardingScreen.tsx` |
 | とりあえずこれやれ機能 | ○ 運動レベルに合うメニューを1つ表示 | `routes/menus.ts` / `HomeScreen.tsx` |
 | 時間の＋／－ボタン | ○ 弱・普通・強の3段階 | `HomeScreen.tsx` |
 | 運動中のタイマー | ○ 何個目か・残り時間・次の種目・一時停止・種目間の休憩 | `WorkoutScreen.tsx` |
@@ -52,6 +51,7 @@ make frontend
 | レベル上げ機能 | ○ XPに応じて自動でレベルアップ | `services/progress.ts` |
 | 今日の完了人数 | ○ ホーム画面に表示 | `routes/workouts.ts` |
 | カレンダー | ○ ホーム画面に月のカレンダー。運動した日に印をつける | `routes/reports.ts` / `components/Calendar.tsx` |
+| 運動レベルの切り替え | ○ ホーム画面で ゆるめ／ふつう／しっかり を選ぶと、今日のメニューが変わる。右の「?」ボタンで各レベルの説明を表示。初回ログイン時は「ゆるめ」 | `routes/users.ts` / `components/WorkoutLevelSelector.tsx` |
 | 並べ替え機能 | △ APIのみ（画面は未作成） | `routes/menus.ts` |
 
 ---
@@ -59,16 +59,17 @@ make frontend
 ## 画面の流れ
 
 ```
-ログイン ──(初回)──> オンボーディング ──> ホーム ──> 運動中 ──> レポート
-   │                                     ↑                       │
-   └──(2回目以降)────────────────────────┴───────────────────────┘
+ログイン ──> ホーム ──> 運動中 ──> レポート
+               ↑                     │
+               └─────────────────────┘
 ```
+
+- 運動ランク診断（アンケート）のオンボーディング画面は、ホーム画面で運動レベルを自分で選べるようにしたので廃止した
 
 | 画面 | ファイル | 主な要素 |
 | --- | --- | --- |
 | ログイン | `frontend/src/screens/LoginScreen.tsx` | 「Googleではじめる」ボタン |
-| オンボーディング | `frontend/src/screens/OnboardingScreen.tsx` | 「今のあなたの運動レベルは？」3択 |
-| ホーム | `frontend/src/screens/HomeScreen.tsx` | ストリーク、レベル、今日のメニュー、＋／－ボタン、スタートボタン、今日の完了人数、カレンダー（運動した日に印）、右上のアカウントメニュー（名前・メールアドレス・ログアウト） |
+| ホーム | `frontend/src/screens/HomeScreen.tsx` | ストリーク、レベル、運動レベルの切り替え、今日のメニュー、＋／－ボタン、スタートボタン、今日の完了人数、カレンダー（運動した日に印）、右上のアカウントメニュー（名前・メールアドレス・ログアウト） |
 | 運動中 | `frontend/src/screens/WorkoutScreen.tsx` | 何個目か、種目名、残り時間、次の種目、一時停止ボタン。種目の間に休憩（次の種目名、残り時間、スキップボタン） |
 | レポート | `frontend/src/screens/ReportScreen.tsx` | 「クリア！お疲れ様」、ストリーク更新、運動時間、消費カロリー、獲得XP、次のレベルまでのXP |
 
@@ -93,8 +94,8 @@ Google の OAuth 2.0（OpenID Connect）の認可コードフローをバック�
                               IDトークンを Google の公開鍵で検証
                               users に google_id がなければ作成
                               session Cookie (JWT) を発行
-  <── フロントへリダイレクト (初回は ?new_user=1)
-GET /api/users/me (Cookie 付き) で状態を確認 ─> 初回はオンボーディング、それ以外はホーム
+  <── フロントへリダイレクト
+GET /api/users/me (Cookie 付き) で状態を確認 ─> ホーム
 
 ログアウト: POST /api/auth/logout ─> Cookie を削除 ─> ログイン画面
 ```
@@ -222,14 +223,15 @@ frontend/src/
 ├── App.tsx             # 画面の切り替え、起動時のログイン確認、ログアウト
 ├── App.css
 ├── types.ts            # backend/src/types.ts と同じ型
+├── workoutLevels.ts    # 運動レベルの名前と説明（ゆるめ／ふつう／しっかり）
 ├── api/
 │   └── client.ts       # API クライアント
 ├── components/
 │   ├── AccountMenu.tsx # 右上のアカウントアイコンとメニュー
-│   └── Calendar.tsx    # ホーム画面のカレンダー
+│   ├── Calendar.tsx    # ホーム画面のカレンダー
+│   └── WorkoutLevelSelector.tsx # ホーム画面の運動レベル切り替え
 └── screens/
     ├── LoginScreen.tsx
-    ├── OnboardingScreen.tsx
     ├── HomeScreen.tsx
     ├── WorkoutScreen.tsx
     └── ReportScreen.tsx
@@ -244,7 +246,6 @@ frontend/src/
 
 ### 未実装の機能
 - レポート画面の「他ユーザーの完了通知」
-- ホーム画面での運動レベルの変更（APIはある）
 - メニュー一覧・並べ替えの画面（APIはある）
 - 毎週・毎月の運動レポート
 - A tier：運動の効果表示
