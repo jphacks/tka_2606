@@ -7,6 +7,14 @@ const INTENSITY_MULTIPLIER: Record<Intensity, number> = {
   high: 1.5,
 };
 
+// 種目と種目の間の休憩 (クールタイム) の秒数
+const REST_SEC = 5;
+
+// タイマーの区切り。種目と休憩を交互に並べる (最後の種目のあとに休憩はない)
+type Segment =
+  | { type: "exercise"; name: string; duration_sec: number; exerciseIndex: number }
+  | { type: "rest"; duration_sec: number; nextExerciseIndex: number };
+
 type Props = {
   menu: WorkoutMenu;
   intensity: Intensity;
@@ -22,7 +30,18 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
       })),
     [menu, intensity],
   );
-  const totalSec = exercises.reduce((sum, e) => sum + e.duration_sec, 0);
+
+  const segments = useMemo(
+    () =>
+      exercises.flatMap((exercise, i): Segment[] => {
+        const segment: Segment = { type: "exercise", ...exercise, exerciseIndex: i };
+        return i < exercises.length - 1
+          ? [segment, { type: "rest", duration_sec: REST_SEC, nextExerciseIndex: i + 1 }]
+          : [segment];
+      }),
+    [exercises],
+  );
+  const totalSec = segments.reduce((sum, s) => sum + s.duration_sec, 0);
 
   const [elapsed, setElapsed] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -41,25 +60,42 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
     }
   }, [elapsed, totalSec, onFinish]);
 
-  // 経過時間から現在の種目と残り時間を求める
+  // 経過時間から現在の区切りと残り時間を求める
   let index = 0;
   let start = 0;
-  while (index < exercises.length - 1 && elapsed >= start + exercises[index].duration_sec) {
-    start += exercises[index].duration_sec;
+  while (index < segments.length - 1 && elapsed >= start + segments[index].duration_sec) {
+    start += segments[index].duration_sec;
     index++;
   }
-  const current = exercises[index];
-  const next = exercises[index + 1];
-  const remaining = Math.max(start + current.duration_sec - elapsed, 0);
+  const current = segments[index];
+  const segmentEnd = start + current.duration_sec;
+  const remaining = Math.max(segmentEnd - elapsed, 0);
 
+  if (current.type === "rest") {
+    const next = exercises[current.nextExerciseIndex];
+    return (
+      <div className="screen">
+        <p>休憩</p>
+        <h2>次: {next.name}</h2>
+        <p className="timer">{remaining}秒</p>
+        <p className="sub">
+          {current.nextExerciseIndex + 1}/{exercises.length}個目の準備をしよう
+        </p>
+        <button onClick={() => setElapsed(segmentEnd)}>スキップ</button>
+        <button onClick={() => setPaused(!paused)}>{paused ? "再開" : "一時停止"}</button>
+      </div>
+    );
+  }
+
+  const next = exercises[current.exerciseIndex + 1];
   return (
     <div className="screen">
       <p>
-        {index + 1}/{exercises.length}個目
+        {current.exerciseIndex + 1}/{exercises.length}個目
       </p>
       <h2>{current.name}</h2>
       <p className="timer">{remaining}秒</p>
-      <p className="sub">次: {next ? next.name : "ラスト！"}</p>
+      <p className="sub">次: {next ? `休憩${REST_SEC}秒 → ${next.name}` : "ラスト！"}</p>
       <button onClick={() => setPaused(!paused)}>{paused ? "再開" : "一時停止"}</button>
     </div>
   );
