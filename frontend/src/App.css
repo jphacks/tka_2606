@@ -761,3 +761,34 @@ button.primary {
 .segmented button:disabled:not(.selected) {
   opacity: 0.4;
 }
+
+/* カスタムメニューのカロリー表示 (秒数に合わせて変わる) */
+.custom-kcal {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.custom-total {
+  text-align: center;
+  font-size: 15px;
+}
+
+.custom-total strong {
+  color: var(--accent);
+}
+
+.duration-options button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  line-height: 1.2;
+}
+
+.duration-kcal {
+  font-size: 11px;
+  font-weight: normal;
+  opacity: 0.85;
+}

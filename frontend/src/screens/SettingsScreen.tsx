@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
-import { CUSTOM_MENU_DURATIONS, CUSTOM_MENU_MAX_EXERCISES } from "../customMenu";
+import { caloriesFor, CUSTOM_MENU_DURATIONS, CUSTOM_MENU_MAX_EXERCISES } from "../customMenu";
 import type { CustomMenu, Exercise, User } from "../types";
 
 // 設定タブで編集する部分 (ホームで選んでいるかどうかは含めない)
@@ -48,13 +48,10 @@ export function SettingsScreen({ user, onSaved, onError }: Props) {
     .filter((e) => e !== undefined);
   const isFull = draft.exercise_names.length >= CUSTOM_MENU_MAX_EXERCISES;
 
-  // 目安の合計時間・カロリー
+  // 目安の合計時間・カロリー。秒数を変えるとその場で計算し直す
   const sec = draft.exercise_duration_sec;
   const totalSec = sec * selected.length;
-  const totalCalories = selected.reduce(
-    (sum, e) => sum + Math.round((e.calories / e.duration_sec) * sec),
-    0,
-  );
+  const totalCaloriesFor = (s: number) => selected.reduce((sum, e) => sum + caloriesFor(e, s), 0);
 
   const update = (changes: Partial<Draft>) => {
     setDraft((d) => ({ ...d, ...changes }));
@@ -118,6 +115,7 @@ export function SettingsScreen({ user, onSaved, onError }: Props) {
                 <li key={exercise.name}>
                   <span className="custom-order">{i + 1}</span>
                   <span className="custom-name">{exercise.name}</span>
+                  <span className="custom-kcal">{caloriesFor(exercise, sec)}kcal</span>
                   <button onClick={() => move(i, -1)} disabled={i === 0} aria-label="上へ">
                     ↑
                   </button>
@@ -141,22 +139,26 @@ export function SettingsScreen({ user, onSaved, onError }: Props) {
           <div className="settings-field-label">
             <span>1種目の時間</span>
           </div>
-          <div className="segmented">
+          {/* 種目を選んでいれば、その秒数にしたときの合計カロリーも出す */}
+          <div className="segmented duration-options">
             {CUSTOM_MENU_DURATIONS.map((option) => (
               <button
                 key={option}
                 className={sec === option ? "selected" : ""}
                 onClick={() => update({ exercise_duration_sec: option })}
               >
-                {option}秒
+                <span>{option}秒</span>
+                {selected.length > 0 ? (
+                  <span className="duration-kcal">約{totalCaloriesFor(option)}kcal</span>
+                ) : null}
               </button>
             ))}
           </div>
         </div>
 
         {selected.length > 0 ? (
-          <p className="sub">
-            合計 約{Math.max(1, Math.round(totalSec / 60))}分 ／ 約{totalCalories}kcal
+          <p className="custom-total">
+            合計 約{Math.max(1, Math.round(totalSec / 60))}分 ／ <strong>約{totalCaloriesFor(sec)}kcal</strong>
           </p>
         ) : null}
 
@@ -184,6 +186,9 @@ export function SettingsScreen({ user, onSaved, onError }: Props) {
                 <img src={imageUrl(exercise.image)} alt="" />
                 <span className="custom-name">{exercise.name}</span>
                 <span className="sub">{exercise.body_part}</span>
+                <span className="custom-kcal">
+                  {sec}秒で約{caloriesFor(exercise, sec)}kcal
+                </span>
                 <span className="custom-catalog-action">{added ? "✓ 追加済み" : "＋ 追加"}</span>
               </button>
             );
