@@ -45,7 +45,7 @@ make frontend
 | ログアウト | ○ 右上のアカウントメニューの中 | `routes/auth.ts` / `App.tsx` / `components/AccountMenu.tsx` |
 | とりあえずこれやれ機能 | ○ 運動レベルに合うメニューを1つ表示 | `routes/menus.ts` / `HomeScreen.tsx` |
 | 時間の＋／－ボタン | ○ 弱・普通・強の3段階 | `HomeScreen.tsx` |
-| 運動中のタイマー | ○ 何個目か・残り時間・次の種目・一時停止・種目間の休憩 | `WorkoutScreen.tsx` |
+| 運動中のタイマー | ○ 何個目か・残り時間の円形ゲージ・全体の進み具合のバー・次の種目・一時停止・種目間の休憩 | `WorkoutScreen.tsx` / `components/TimerRing.tsx` |
 | 今日の運動レポート | ○ 運動時間・消費カロリー・獲得XP | `routes/reports.ts` / `ReportScreen.tsx` |
 | ストリーク機能 | ○ 連続日数を自動更新 | `services/progress.ts` |
 | レベル上げ機能 | ○ XPに応じて自動でレベルアップ | `services/progress.ts` |
@@ -70,7 +70,7 @@ make frontend
 | --- | --- | --- |
 | ログイン | `frontend/src/screens/LoginScreen.tsx` | 「Googleではじめる」ボタン |
 | ホーム | `frontend/src/screens/HomeScreen.tsx` | ストリーク、レベル、運動レベルの切り替え、今日のメニュー、＋／－ボタン、スタートボタン、今日の完了人数、カレンダー（運動した日に印）、右上のアカウントメニュー（名前・メールアドレス・ログアウト） |
-| 運動中 | `frontend/src/screens/WorkoutScreen.tsx` | 何個目か、種目名、残り時間、次の種目、一時停止ボタン。種目の間に休憩（次の種目名、残り時間、スキップボタン） |
+| 運動中 | `frontend/src/screens/WorkoutScreen.tsx` | 全体の進み具合のバー、何個目か、種目名、残り時間の円形ゲージ（休憩中は緑）、次の種目、一時停止ボタン。種目の間に休憩（次の種目名、残り時間、スキップボタン） |
 | レポート | `frontend/src/screens/ReportScreen.tsx` | 「クリア！お疲れ様」、ストリーク更新、運動時間、消費カロリー、獲得XP、次のレベルまでのXP |
 
 - 画面の切り替えはルーターを使わず、`App.tsx` の state で管理している
@@ -229,6 +229,7 @@ frontend/src/
 ├── components/
 │   ├── AccountMenu.tsx # 右上のアカウントアイコンとメニュー
 │   ├── Calendar.tsx    # ホーム画面のカレンダー
+│   ├── TimerRing.tsx   # 運動中画面の残り時間の円形ゲージ
 │   └── WorkoutLevelSelector.tsx # ホーム画面の運動レベル切り替え
 └── screens/
     ├── LoginScreen.tsx
