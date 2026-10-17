@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { ApiError, api } from "./api/client";
 import { HomeScreen } from "./screens/HomeScreen";
 import { LoginScreen } from "./screens/LoginScreen";
-import { OnboardingScreen } from "./screens/OnboardingScreen";
 import { ReportScreen } from "./screens/ReportScreen";
 import { WorkoutScreen } from "./screens/WorkoutScreen";
 import type { Intensity, User, WorkoutMenu, WorkoutResult } from "./types";
@@ -11,12 +10,11 @@ import "./App.css";
 type Screen =
   | { name: "loading" }
   | { name: "login" }
-  | { name: "onboarding" }
   | { name: "home" }
   | { name: "workout"; menu: WorkoutMenu; intensity: Intensity }
   | { name: "report"; result: WorkoutResult };
 
-// Google ログインから戻ってきたときは URL に new_user / login_error が付いている
+// Google ログインに失敗して戻ってきたときは URL に login_error が付いている
 // 読み取ったら URL からは消しておく
 const loginParams = new URLSearchParams(window.location.search);
 window.history.replaceState(null, "", window.location.pathname);
@@ -32,7 +30,7 @@ function App() {
       .getMe()
       .then((user) => {
         setUser(user);
-        setScreen(loginParams.has("new_user") ? { name: "onboarding" } : { name: "home" });
+        setScreen({ name: "home" });
       })
       .catch((e) => {
         if (!(e instanceof ApiError && e.status === 401)) {
@@ -43,6 +41,10 @@ function App() {
         setScreen({ name: "login" });
       });
   }, []);
+
+  const updateWorkoutLevel = (workout_level: number) => {
+    setUser((u) => (u ? { ...u, workout_level } : u));
+  };
 
   const handleLogout = async () => {
     try {
@@ -71,21 +73,12 @@ function App() {
         return <p>読み込み中...</p>;
       case "login":
         return <LoginScreen />;
-      case "onboarding":
-        return (
-          <OnboardingScreen
-            onComplete={(workout_level) => {
-              setUser((u) => (u ? { ...u, workout_level } : u));
-              setScreen({ name: "home" });
-            }}
-            onError={setError}
-          />
-        );
       case "home":
         return user ? (
           <HomeScreen
             user={user}
             onStart={(menu, intensity) => setScreen({ name: "workout", menu, intensity })}
+            onChangeWorkoutLevel={updateWorkoutLevel}
             onLogout={handleLogout}
             onError={setError}
           />
