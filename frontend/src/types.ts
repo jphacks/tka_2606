@@ -49,6 +49,14 @@ export type WorkoutResult = {
   xp_to_next_level: number;
 };
 
+// 今日のレポート
+export type TodayReport = {
+  logs: WorkoutLog[];
+  total_duration_sec: number;
+  total_calories: number;
+  total_xp: number;
+};
+
 // カレンダーの1日分 (運動した日だけ返す)
 export type CalendarDay = {
   date: string; // 日本時間の日付 "2026-10-17"
