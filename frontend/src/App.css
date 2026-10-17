@@ -19,11 +19,80 @@
   width: 100%;
 }
 
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
 .status {
   display: flex;
-  justify-content: space-between;
-  width: 100%;
+  gap: 16px;
   font-weight: bold;
+}
+
+.account {
+  position: relative;
+}
+
+.avatar-button {
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+}
+
+.avatar {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-initial {
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: #fff;
+  font-weight: bold;
+}
+
+.account-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 240px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.account-menu p {
+  margin: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-name {
+  font-weight: bold;
+  color: var(--text-h);
+}
+
+.account-menu button {
+  width: 100%;
+  margin-top: 8px;
 }
 
 .card {
@@ -72,12 +141,4 @@ button.primary {
   background: var(--accent);
   color: #fff;
   font-weight: bold;
-}
-
-button.link {
-  border: none;
-  background: none;
-  font-size: 14px;
-  color: var(--text);
-  text-decoration: underline;
 }

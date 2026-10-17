@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
+import { AccountMenu } from "../components/AccountMenu";
 import type { Intensity, User, WorkoutMenu } from "../types";
 
 const INTENSITIES: Intensity[] = ["low", "normal", "high"];
@@ -54,10 +55,13 @@ export function HomeScreen({ user, onStart, onLogout, onError }: Props) {
 
   return (
     <div className="screen">
-      <div className="status">
-        <span>🔥 {user.current_streak}日連続</span>
-        <span>Lv. {user.user_level}</span>
-      </div>
+      <header className="home-header">
+        <div className="status">
+          <span>🔥 {user.current_streak}日連続</span>
+          <span>Lv. {user.user_level}</span>
+        </div>
+        <AccountMenu user={user} onLogout={onLogout} />
+      </header>
 
       {menu ? (
         <div className="card">
@@ -84,10 +88,6 @@ export function HomeScreen({ user, onStart, onLogout, onError }: Props) {
       )}
 
       <p className="sub">今日 {todayCount}人 が運動を完了しました</p>
-
-      <button className="link" onClick={onLogout}>
-        ログアウト
-      </button>
     </div>
   );
 }

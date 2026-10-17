@@ -5,6 +5,10 @@ export type Intensity = "low" | "normal" | "high";
 export type User = {
   id: string;
   google_id: string;
+  // Google アカウントの表示用情報 (ログインのたびに更新する。table.md への追加)
+  display_name: string;
+  email: string;
+  photo_url: string | null;
   workout_level: number; // 運動レベル (メニュー決定用。ホーム画面で手動変更可。例: 1, 2, 3)
   user_level: number; // ユーザーレベル (モチベ用。自動で上がる)
   current_streak: number;
