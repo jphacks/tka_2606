@@ -49,6 +49,10 @@ export async function fetchGoogleAccount(code: string) {
 
   return {
     googleId: payload.sub as string,
-    email: payload.email as string | undefined,
+    displayName: (payload.name as string | undefined) ?? "",
+    email: (payload.email as string | undefined) ?? "",
+    photoUrl: (payload.picture as string | undefined) ?? null,
   };
 }
+
+export type GoogleAccount = Awaited<ReturnType<typeof fetchGoogleAccount>>;

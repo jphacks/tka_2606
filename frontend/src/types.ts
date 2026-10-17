@@ -5,6 +5,9 @@ export type Intensity = "low" | "normal" | "high";
 export type User = {
   id: string;
   google_id: string;
+  display_name: string;
+  email: string;
+  photo_url: string | null;
   workout_level: number;
   user_level: number;
   current_streak: number;

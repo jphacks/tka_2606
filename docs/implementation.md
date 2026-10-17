@@ -41,7 +41,8 @@ make frontend
 | 機能 | 状態 | 実装箇所 |
 | --- | --- | --- |
 | サインイン／サインアップ | ○ Google の OAuth でログイン（初回はユーザーを作成） | `routes/auth.ts` / `services/google.ts` / `LoginScreen.tsx` |
-| ログアウト | ○ ホーム画面下のボタン | `routes/auth.ts` / `App.tsx` / `HomeScreen.tsx` |
+| アカウント表示 | ○ ホーム画面右上にGoogleのアイコン。押すと名前・メールアドレスを表示 | `components/AccountMenu.tsx` |
+| ログアウト | ○ 右上のアカウントメニューの中 | `routes/auth.ts` / `App.tsx` / `components/AccountMenu.tsx` |
 | 運動ランク診断（アンケート） | ○ 3択で `workout_level` を保存 | `routes/users.ts` / `OnboardingScreen.tsx` |
 | とりあえずこれやれ機能 | ○ 運動レベルに合うメニューを1つ表示 | `routes/menus.ts` / `HomeScreen.tsx` |
 | 時間の＋／－ボタン | ○ 弱・普通・強の3段階 | `HomeScreen.tsx` |
@@ -66,7 +67,7 @@ make frontend
 | --- | --- | --- |
 | ログイン | `frontend/src/screens/LoginScreen.tsx` | 「Googleではじめる」ボタン |
 | オンボーディング | `frontend/src/screens/OnboardingScreen.tsx` | 「今のあなたの運動レベルは？」3択 |
-| ホーム | `frontend/src/screens/HomeScreen.tsx` | ストリーク、レベル、今日のメニュー、＋／－ボタン、スタートボタン、今日の完了人数、ログアウト |
+| ホーム | `frontend/src/screens/HomeScreen.tsx` | ストリーク、レベル、今日のメニュー、＋／－ボタン、スタートボタン、今日の完了人数、右上のアカウントメニュー（名前・メールアドレス・ログアウト） |
 | 運動中 | `frontend/src/screens/WorkoutScreen.tsx` | 何個目か、種目名、残り時間、次の種目、一時停止ボタン |
 | レポート | `frontend/src/screens/ReportScreen.tsx` | 「クリア！お疲れ様」、ストリーク更新、運動時間、消費カロリー、獲得XP、次のレベルまでのXP |
 
@@ -169,6 +170,12 @@ GET /api/users/me (Cookie 付き) で状態を確認 ─> 初回はオンボー�
 
 ### table.md から変えたところ
 
+- **`User` に Google アカウントの表示用情報を追加**：ホーム画面右上のアカウント表示に使う。ログインのたびに Google の情報で上書きする
+  ```ts
+  display_name: string;      // Google アカウントの名前
+  email: string;             // メールアドレス
+  photo_url: string | null;  // プロフィール画像のURL（ない場合は名前の頭文字を表示）
+  ```
 - **`WorkoutMenu.exercises` を追加**：運動中画面で「何個目か」「次の種目」を出すために、種目名と秒数の配列を持たせた
   ```ts
   exercises: { name: string; duration_sec: number }[];
@@ -213,6 +220,8 @@ frontend/src/
 ├── types.ts            # backend/src/types.ts と同じ型
 ├── api/
 │   └── client.ts       # API クライアント
+├── components/
+│   └── AccountMenu.tsx # 右上のアカウントアイコンとメニュー
 └── screens/
     ├── LoginScreen.tsx
     ├── OnboardingScreen.tsx

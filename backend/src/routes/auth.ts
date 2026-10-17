@@ -2,7 +2,7 @@ import { Hono, type Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { env } from "../env.js";
 import { COLLECTIONS, db } from "../firebase.js";
-import { buildGoogleAuthUrl, fetchGoogleAccount } from "../services/google.js";
+import { buildGoogleAuthUrl, fetchGoogleAccount, type GoogleAccount } from "../services/google.js";
 import { endSession, startSession } from "../services/session.js";
 import type { User } from "../types.js";
 
@@ -34,8 +34,8 @@ export async function handleGoogleCallback(c: Context) {
   }
 
   try {
-    const { googleId } = await fetchGoogleAccount(code);
-    const { userId, isNew } = await findOrCreateUser(googleId);
+    const account = await fetchGoogleAccount(code);
+    const { userId, isNew } = await findOrCreateUser(account);
     await startSession(c, userId);
     // 初回ログインならオンボーディング画面を出す
     return c.redirect(`${env.FRONTEND_URL}/${isNew ? "?new_user=1" : ""}`);
@@ -51,15 +51,25 @@ auth.post("/logout", (c) => {
 });
 
 // ユーザーがまだいなければ作成する (サインアップ)
-async function findOrCreateUser(googleId: string) {
+// すでにいれば、Google アカウントの名前・画像の変更を反映する
+async function findOrCreateUser(account: GoogleAccount) {
+  const profile = {
+    display_name: account.displayName,
+    email: account.email,
+    photo_url: account.photoUrl,
+  };
+
   const users = db.collection(COLLECTIONS.users);
-  const snapshot = await users.where("google_id", "==", googleId).limit(1).get();
+  const snapshot = await users.where("google_id", "==", account.googleId).limit(1).get();
   if (!snapshot.empty) {
-    return { userId: snapshot.docs[0].id, isNew: false };
+    const doc = snapshot.docs[0];
+    await doc.ref.update(profile);
+    return { userId: doc.id, isNew: false };
   }
 
   const newUser: Omit<User, "id"> = {
-    google_id: googleId,
+    google_id: account.googleId,
+    ...profile,
     workout_level: 1,
     user_level: 1,
     current_streak: 0,
