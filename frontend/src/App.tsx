@@ -1,113 +1,106 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { api, clearStoredUserId, getStoredUserId } from "./api/client";
+import { HomeScreen } from "./screens/HomeScreen";
+import { LoginScreen } from "./screens/LoginScreen";
+import { OnboardingScreen } from "./screens/OnboardingScreen";
+import { ReportScreen } from "./screens/ReportScreen";
+import { WorkoutScreen } from "./screens/WorkoutScreen";
+import type { Intensity, User, WorkoutMenu, WorkoutResult } from "./types";
 import "./App.css";
 
-type Todo = {
-  id: string;
-  title: string;
-  completed: boolean;
-  createdAt: string;
-};
-
-const BASE_URL = "http://localhost:3000/api/todos";
+type Screen =
+  | { name: "loading" }
+  | { name: "login" }
+  | { name: "onboarding" }
+  | { name: "home" }
+  | { name: "workout"; menu: WorkoutMenu; intensity: Intensity }
+  | { name: "report"; result: WorkoutResult };
 
 function App() {
-  const [title, setTitle] = useState("");
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [screen, setScreen] = useState<Screen>(() =>
+    getStoredUserId() ? { name: "loading" } : { name: "login" },
+  );
+  const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState("");
 
+  // 保存済みのユーザーがいればホームへ
   useEffect(() => {
-    const fetchData = async () => {
-      const rawRes = await fetch(BASE_URL);
-      const res = await rawRes.json();
-      if (res.error) {
-        setError(res.error);
-      } else {
-        setTodos(res);
-      }
-    };
-    fetchData();
+    if (!getStoredUserId()) return;
+    api
+      .getMe()
+      .then((user) => {
+        setUser(user);
+        setScreen({ name: "home" });
+      })
+      .catch(() => {
+        clearStoredUserId();
+        setScreen({ name: "login" });
+      });
   }, []);
 
-  const handleAdd = async () => {
-    const rawRes = await fetch(BASE_URL, {
-      method: "POST",
-      body: JSON.stringify({ title: title }),
-    });
-    const res = await rawRes.json();
-    if (res.error) {
-      setError(res.error);
-      return;
-    } else {
-      const newTodo: Todo = res;
-      const newTodos: Todo[] = [...todos, newTodo];
-      setTodos(newTodos);
-      setTitle("");
+  const handleFinishWorkout = useCallback(async () => {
+    if (screen.name !== "workout") return;
+    try {
+      const result = await api.completeWorkout(screen.menu.id, screen.intensity);
+      setUser(result.user);
+      setScreen({ name: "report", result });
+    } catch (e) {
+      setError((e as Error).message);
     }
-  };
+  }, [screen]);
 
-  const handleDelete = async (id: string) => {
-    const rawRes = await fetch(`${BASE_URL}/${id}`, {
-      method: "DELETE",
-    });
-    const res = await rawRes.json();
-    if (res.error) {
-      setError(res.error);
-      return;
-    } else {
-      const newTodos = todos.filter((todo) => todo.id !== id);
-      setTodos(newTodos);
-    }
-  };
-
-  const handleToggle = async (id: string, completed: boolean) => {
-    const rawRes = await fetch(`${BASE_URL}/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ completed: !completed }),
-    });
-    const res = await rawRes.json();
-    if (res.error) {
-      setError(res.error);
-    } else {
-      const newTodos: Todo[] = todos.map((todo) => ({
-        id: todo.id,
-        title: todo.title,
-        completed: todo.id === id ? !todo.completed : todo.completed,
-        createdAt: todo.createdAt,
-      }));
-      setTodos(newTodos);
+  const renderScreen = () => {
+    switch (screen.name) {
+      case "loading":
+        return <p>読み込み中...</p>;
+      case "login":
+        return (
+          <LoginScreen
+            onLogin={(user, isNew) => {
+              setUser(user);
+              setScreen(isNew ? { name: "onboarding" } : { name: "home" });
+            }}
+            onError={setError}
+          />
+        );
+      case "onboarding":
+        return (
+          <OnboardingScreen
+            onComplete={(workout_level) => {
+              setUser((u) => (u ? { ...u, workout_level } : u));
+              setScreen({ name: "home" });
+            }}
+            onError={setError}
+          />
+        );
+      case "home":
+        return user ? (
+          <HomeScreen
+            user={user}
+            onStart={(menu, intensity) => setScreen({ name: "workout", menu, intensity })}
+            onError={setError}
+          />
+        ) : null;
+      case "workout":
+        return (
+          <WorkoutScreen
+            menu={screen.menu}
+            intensity={screen.intensity}
+            onFinish={handleFinishWorkout}
+          />
+        );
+      case "report":
+        return (
+          <ReportScreen result={screen.result} onBackHome={() => setScreen({ name: "home" })} />
+        );
     }
   };
 
   return (
-    <>
-      <div>
-        <input
-          placeholder="タイトル"
-          onChange={(e) => setTitle(e.target.value)}
-          value={title}
-        />
-        <button onClick={handleAdd}>追加</button>
-      </div>
-      {error ? <p>{error}</p> : null}
-      <div>
-        {todos.map((todo) => {
-          return (
-            <div key={todo.id}>
-              <p>{todo.title}</p>
-              <input
-                type="checkbox"
-                checked={todo.completed}
-                onChange={() => handleToggle(todo.id, todo.completed)}
-              />
-              <button onClick={() => handleDelete(todo.id)}>削除</button>
-            </div>
-          );
-        })}
-      </div>
-    </>
+    <div className="app">
+      {error ? <p className="error">{error}</p> : null}
+      {renderScreen()}
+    </div>
   );
 }
 
