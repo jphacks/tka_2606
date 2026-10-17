@@ -1,7 +1,7 @@
 .app {
   max-width: 420px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 24px 16px 80px;
 }
 
 .screen {
@@ -349,4 +349,74 @@ button.primary {
   margin: 0;
   font-size: 13px;
   line-height: 1.4;
+}
+
+/* ボトムタブ */
+.bottom-tabs {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  z-index: 100;
+}
+
+.tab-button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 0 12px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.tab-button.active {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.tab-icon {
+  font-size: 20px;
+}
+
+.tab-label {
+  font-size: 11px;
+}
+
+/* レポートタブ */
+.report-summary {
+  text-align: center;
+}
+
+.report-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 12px;
+}
+
+.report-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.report-stat-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--text-h);
+}
+
+.report-stat-label {
+  font-size: 12px;
 }

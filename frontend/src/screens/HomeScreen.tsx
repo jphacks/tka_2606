@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { AccountMenu } from "../components/AccountMenu";
-import { Calendar } from "../components/Calendar";
 import { WorkoutLevelSelector } from "../components/WorkoutLevelSelector";
 import type { Intensity, User, WorkoutMenu } from "../types";
 
@@ -108,8 +107,6 @@ export function HomeScreen({
       )}
 
       <p className="sub">今日 {todayCount}人 が運動を完了しました</p>
-
-      <Calendar onError={onError} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import type { CalendarDay, Intensity, User, WorkoutMenu, WorkoutResult } from "../types";
+import type { CalendarDay, Intensity, TodayReport, User, WorkoutMenu, WorkoutResult } from "../types";
 
 export const BASE_URL = "http://localhost:3000/api";
 
@@ -40,6 +40,7 @@ export const api = {
       body: JSON.stringify({ workout_level }),
     }),
   getTodayMenu: () => request<WorkoutMenu>("/menus/today"),
+  getTodayReport: () => request<TodayReport>("/reports/today"),
   getTodayCount: () => request<{ count: number }>("/workouts/today/count"),
   // month は "2026-10" の形式
   getCalendar: (month: string) =>

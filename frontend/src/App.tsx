@@ -3,6 +3,7 @@ import { ApiError, api } from "./api/client";
 import { HomeScreen } from "./screens/HomeScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { ReportScreen } from "./screens/ReportScreen";
+import { ReportTabScreen } from "./screens/ReportTabScreen";
 import { WorkoutScreen } from "./screens/WorkoutScreen";
 import type { Intensity, User, WorkoutMenu, WorkoutResult } from "./types";
 import "./App.css";
@@ -14,6 +15,8 @@ type Screen =
   | { name: "workout"; menu: WorkoutMenu; intensity: Intensity }
   | { name: "report"; result: WorkoutResult };
 
+type Tab = "home" | "report-tab";
+
 // Google ログインに失敗して戻ってきたときは URL に login_error が付いている
 // 読み取ったら URL からは消しておく
 const loginParams = new URLSearchParams(window.location.search);
@@ -21,6 +24,7 @@ window.history.replaceState(null, "", window.location.pathname);
 
 function App() {
   const [screen, setScreen] = useState<Screen>({ name: "loading" });
+  const [tab, setTab] = useState<Tab>("home");
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState("");
 
@@ -70,6 +74,8 @@ function App() {
     }
   }, [screen]);
 
+  const showTabs = screen.name === "home" && user;
+
   const renderScreen = () => {
     switch (screen.name) {
       case "loading":
@@ -77,7 +83,11 @@ function App() {
       case "login":
         return <LoginScreen />;
       case "home":
-        return user ? (
+        if (!user) return null;
+        if (tab === "report-tab") {
+          return <ReportTabScreen onError={setError} />;
+        }
+        return (
           <HomeScreen
             user={user}
             onStart={(menu, intensity) =>
@@ -87,7 +97,7 @@ function App() {
             onLogout={handleLogout}
             onError={setError}
           />
-        ) : null;
+        );
       case "workout":
         return (
           <WorkoutScreen
@@ -100,7 +110,10 @@ function App() {
         return (
           <ReportScreen
             result={screen.result}
-            onBackHome={() => setScreen({ name: "home" })}
+            onBackHome={() => {
+              setTab("home");
+              setScreen({ name: "home" });
+            }}
           />
         );
     }
@@ -110,6 +123,25 @@ function App() {
     <div className="app">
       {error ? <p className="error">{error}</p> : null}
       {renderScreen()}
+
+      {showTabs && (
+        <nav className="bottom-tabs">
+          <button
+            className={`tab-button ${tab === "home" ? "active" : ""}`}
+            onClick={() => setTab("home")}
+          >
+            <span className="tab-icon">🏠</span>
+            <span className="tab-label">ホーム</span>
+          </button>
+          <button
+            className={`tab-button ${tab === "report-tab" ? "active" : ""}`}
+            onClick={() => setTab("report-tab")}
+          >
+            <span className="tab-icon">📊</span>
+            <span className="tab-label">レポート</span>
+          </button>
+        </nav>
+      )}
     </div>
   );
 }
