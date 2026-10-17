@@ -1,11 +1,24 @@
 import type { Context } from "hono";
+import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
+import { getSessionUserId } from "./services/session.js";
 
-// TODO: 認証トークンの検証に置き換える。今は X-User-Id ヘッダーをそのまま信用する仮実装
-export function getUserId(c: Context) {
-  const userId = c.req.header("X-User-Id");
-  if (!userId) {
-    throw new HTTPException(401, { message: "X-User-Id header is required" });
+declare module "hono" {
+  interface ContextVariableMap {
+    userId: string;
   }
-  return userId;
+}
+
+// ログイン中 (セッション Cookie が有効) でなければ 401 を返す
+export const requireAuth = createMiddleware(async (c, next) => {
+  const userId = await getSessionUserId(c);
+  if (!userId) {
+    throw new HTTPException(401, { message: "Not logged in" });
+  }
+  c.set("userId", userId);
+  await next();
+});
+
+export function getUserId(c: Context) {
+  return c.get("userId");
 }

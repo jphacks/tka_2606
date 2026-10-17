@@ -17,10 +17,11 @@ const INTENSITY_MULTIPLIER: Record<Intensity, number> = {
 type Props = {
   user: User;
   onStart: (menu: WorkoutMenu, intensity: Intensity) => void;
+  onLogout: () => void;
   onError: (message: string) => void;
 };
 
-export function HomeScreen({ user, onStart, onError }: Props) {
+export function HomeScreen({ user, onStart, onLogout, onError }: Props) {
   const [menu, setMenu] = useState<WorkoutMenu | null>(null);
   const [todayCount, setTodayCount] = useState(0);
   const [intensity, setIntensity] = useState<Intensity>("normal");
@@ -83,6 +84,10 @@ export function HomeScreen({ user, onStart, onError }: Props) {
       )}
 
       <p className="sub">今日 {todayCount}人 が運動を完了しました</p>
+
+      <button className="link" onClick={onLogout}>
+        ログアウト
+      </button>
     </div>
   );
 }

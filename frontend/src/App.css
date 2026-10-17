@@ -73,3 +73,11 @@ button.primary {
   color: #fff;
   font-weight: bold;
 }
+
+button.link {
+  border: none;
+  background: none;
+  font-size: 14px;
+  color: var(--text);
+  text-decoration: underline;
+}
