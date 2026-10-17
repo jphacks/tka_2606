@@ -1,4 +1,12 @@
-import type { CalendarDay, Intensity, TodayReport, User, WorkoutMenu, WorkoutResult } from "../types";
+import type {
+  CalendarDay,
+  CustomMenu,
+  Intensity,
+  TodayReport,
+  User,
+  WorkoutMenu,
+  WorkoutResult,
+} from "../types";
 
 export const BASE_URL = "http://localhost:3000/api";
 
@@ -39,6 +47,15 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ workout_level }),
     }),
+  // 設定タブでカスタムメニューの種目と時間を保存する
+  updateCustomMenu: (custom_menu: Pick<CustomMenu, "exercise_names" | "exercise_duration_sec">) =>
+    request<{ custom_menu: CustomMenu }>("/users/me/custom-menu", {
+      method: "PUT",
+      body: JSON.stringify(custom_menu),
+    }),
+  // ホームの運動レベルで「カスタム」を選ぶ
+  selectCustomMenu: () =>
+    request<{ custom_menu: CustomMenu }>("/users/me/custom-menu/select", { method: "PATCH" }),
   getMenus: (sort?: "calories" | "difficulty") =>
     request<WorkoutMenu[]>(`/menus${sort ? `?sort=${sort}` : ""}`),
   getTodayMenu: () => request<WorkoutMenu>("/menus/today"),
