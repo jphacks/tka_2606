@@ -26,8 +26,8 @@ export function xpToNextLevel(totalXp: number) {
   return XP_PER_LEVEL - (totalXp % XP_PER_LEVEL);
 }
 
-// 日付の比較は日本時間で行う
-function toJstDateString(date: Date) {
+// 日付の比較は日本時間で行う (例: "2026-10-17")
+export function toJstDateString(date: Date) {
   return new Date(date.getTime() + 9 * 60 * 60 * 1000)
     .toISOString()
     .slice(0, 10);
