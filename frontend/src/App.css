@@ -588,3 +588,207 @@ button.primary {
 .report-stat-label {
   font-size: 12px;
 }
+
+/* ---------- 設定タブ ---------- */
+
+.settings {
+  align-items: stretch;
+  text-align: left;
+}
+
+.settings h2 {
+  text-align: center;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.settings-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-section-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-h);
+}
+
+.settings-note {
+  margin-top: -8px;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-field-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text-h);
+}
+
+.settings .segmented button {
+  flex: 1;
+}
+
+.settings-saved {
+  text-align: center;
+  color: var(--accent);
+}
+
+/* 選んだ種目の数 (上限に達したら強調) */
+.custom-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.custom-count.full {
+  color: var(--accent);
+}
+
+.custom-selected {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.custom-selected li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.custom-selected button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 14px;
+}
+
+.custom-selected button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.custom-order {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.custom-name {
+  flex: 1;
+  font-weight: bold;
+  color: var(--text-h);
+}
+
+/* 種目の追加一覧 */
+.custom-catalog {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.custom-catalog-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  text-align: center;
+}
+
+.custom-catalog-item img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.custom-catalog-item .custom-name {
+  flex: none;
+  font-size: 14px;
+}
+
+.custom-catalog-item.added {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.custom-catalog-item:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.custom-catalog-action {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--accent);
+}
+
+/* 運動レベルが4つ (カスタムを含む) になったので、狭い画面では折り返す */
+.level-selector {
+  flex-wrap: wrap;
+}
+
+.level-selector .segmented button {
+  padding: 8px 10px;
+}
+
+.segmented button:disabled:not(.selected) {
+  opacity: 0.4;
+}
+
+/* カスタムメニューのカロリー表示 (秒数に合わせて変わる) */
+.custom-kcal {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.custom-total {
+  text-align: center;
+  font-size: 15px;
+}
+
+.custom-total strong {
+  color: var(--accent);
+}
+
+.duration-options button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  line-height: 1.2;
+}
+
+.duration-kcal {
+  font-size: 11px;
+  font-weight: normal;
+  opacity: 0.85;
+}

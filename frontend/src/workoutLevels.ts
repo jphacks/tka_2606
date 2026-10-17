@@ -16,3 +16,9 @@ export const WORKOUT_LEVELS = [
     description: "バーピー・V字腹筋・片足スクワットの強い運動",
   },
 ];
+
+// 運動レベルの4つ目の選択肢。設定タブで作ったカスタムメニューをやる
+export const CUSTOM_LEVEL = {
+  name: "カスタム",
+  description: "設定タブで自分で選んだ種目のメニュー",
+};

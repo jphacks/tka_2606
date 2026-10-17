@@ -53,6 +53,7 @@ make frontend
 | カレンダー | ○ ホーム画面に月のカレンダー。運動した日に印をつける | `routes/reports.ts` / `components/Calendar.tsx` |
 | 運動レベルの切り替え | ○ ホーム画面で ゆるめ／ふつう／しっかり を選ぶと、今日のメニューが変わる。右の「?」ボタンで各レベルの説明を表示。初回ログイン時は「ゆるめ」 | `routes/users.ts` / `components/WorkoutLevelSelector.tsx` |
 | 並べ替え機能 | △ APIのみ（画面は未作成） | `routes/menus.ts` |
+| 設定タブ・カスタムメニュー | ○ 下のタブの「設定」で、やりたい種目（最大5つ）・順番・1種目の時間（20/30/45/60秒）を決めて保存。保存すると、ホームの運動レベルに4つ目の選択肢「カスタム」が選べるようになる（作るまでは押せない） | `routes/users.ts` / `services/customMenu.ts` / `SettingsScreen.tsx` / `components/WorkoutLevelSelector.tsx` |
 
 ---
 
@@ -120,11 +121,13 @@ GET /api/users/me (Cookie 付き) で状態を確認 ─> ホーム
 | GET | `/callback`（`/api` なし） | Google からの戻り先。ログインに成功したらセッションを作ってフロントへリダイレクトする |
 | POST | `/auth/logout` | セッションの Cookie を消す |
 | GET | `/users/me` 🔒 | 自分のユーザー情報 |
-| PATCH | `/users/me/workout-level` 🔒 | 運動レベル（1〜3）を変更する |
+| PATCH | `/users/me/workout-level` 🔒 | 運動レベル（1〜3）を変更する。「カスタム」を選んでいた場合は外す |
+| PATCH | `/users/me/custom-menu/select` 🔒 | ホームの運動レベルで「カスタム」を選ぶ。カスタムメニューが未作成なら 400 |
+| PUT | `/users/me/custom-menu` 🔒 | カスタムメニューの種目と時間を保存する。種目は最大5つ・重複なし・既存の種目のみ、時間は 20/30/45/60 秒のどれか。「カスタム」を選んでいるかはそのまま（種目を0個にしたときだけ外す） |
 | GET | `/menus?sort=duration\|difficulty\|calories` | メニュー一覧（時間・難易度・カロリー順） |
-| GET | `/menus/today` 🔒 | 今日のメニューを1つ返す（とりあえずこれやれ） |
+| GET | `/menus/today` 🔒 | 今日のメニューを1つ返す（とりあえずこれやれ）。運動レベルで「カスタム」を選んでいれば、カスタムメニュー（`id: "custom"`）を返す |
 | GET | `/menus/:id` | メニュー詳細 |
-| POST | `/workouts` 🔒 | 運動完了を記録し、ストリーク・XP・レベルを更新する |
+| POST | `/workouts` 🔒 | 運動完了を記録し、ストリーク・XP・レベルを更新する。`menu_id: "custom"` ならユーザーのカスタムメニューから計算する |
 | GET | `/workouts/today/count` | 今日運動を完了した人数 |
 | GET | `/reports/today` 🔒 | 自分の今日の運動レポート |
 | GET | `/reports/calendar?month=2026-10` 🔒 | 指定した月に運動した日の一覧（日ごとの回数・運動時間・消費カロリー）。`month` を省略すると今月 |
@@ -175,6 +178,16 @@ GET /api/users/me (Cookie 付き) で状態を確認 ─> ホーム
 
 ### table.md から変えたところ
 
+- **`User` に `custom_menu` を追加**：設定タブのカスタムメニュー。未設定のユーザーにはない
+  ```ts
+  custom_menu?: {
+    selected: boolean;              // ホームの運動レベルで「カスタム」を選んでいるか
+    exercise_names: string[];       // やりたい種目の名前（順番どおり、最大5つ）
+    exercise_duration_sec: number;  // 1種目の時間（20/30/45/60）
+  } | null;
+  ```
+  - カスタムメニューのカロリーは、元の種目の「秒あたりのカロリー」×選んだ時間で計算する
+
 - **`User` に Google アカウントの表示用情報を追加**：ホーム画面右上のアカウント表示に使う。ログインのたびに Google の情報で上書きする
   ```ts
   display_name: string;      // Google アカウントの名前
@@ -211,6 +224,7 @@ backend/src/
 ├── services/
 │   ├── google.ts       # Google の OAuth（ログイン画面のURL作成、IDトークンの検証）
 │   ├── session.ts      # セッションの Cookie（JWT）の発行・検証・削除
+│   ├── customMenu.ts   # カスタムメニューの入力チェックと組み立て（種目数の上限など）
 │   └── progress.ts     # XP・レベル・ストリークの計算
 └── routes/
     ├── auth.ts
@@ -224,6 +238,7 @@ frontend/src/
 ├── App.css
 ├── types.ts            # backend/src/types.ts と同じ型
 ├── workoutLevels.ts    # 運動レベルの名前と説明（ゆるめ／ふつう／しっかり）
+├── customMenu.ts       # カスタムメニューの種目数の上限・時間の選択肢
 ├── api/
 │   └── client.ts       # API クライアント
 ├── components/
@@ -235,7 +250,8 @@ frontend/src/
     ├── LoginScreen.tsx
     ├── HomeScreen.tsx
     ├── WorkoutScreen.tsx
-    └── ReportScreen.tsx
+    ├── ReportScreen.tsx
+    └── SettingsScreen.tsx # 設定タブ（カスタムメニュー）
 ```
 
 ---
