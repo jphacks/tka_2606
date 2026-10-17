@@ -4,6 +4,7 @@ import { HomeScreen } from "./screens/HomeScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { ReportScreen } from "./screens/ReportScreen";
 import { ReportTabScreen } from "./screens/ReportTabScreen";
+import { TrainingListScreen } from "./screens/TrainingListScreen";
 import { WorkoutScreen } from "./screens/WorkoutScreen";
 import type { Intensity, User, WorkoutMenu, WorkoutResult } from "./types";
 import "./App.css";
@@ -15,7 +16,7 @@ type Screen =
   | { name: "workout"; menu: WorkoutMenu; intensity: Intensity }
   | { name: "report"; result: WorkoutResult };
 
-type Tab = "home" | "report-tab";
+type Tab = "home" | "training-list" | "report-tab";
 
 // Google ログインに失敗して戻ってきたときは URL に login_error が付いている
 // 読み取ったら URL からは消しておく
@@ -84,6 +85,9 @@ function App() {
         return <LoginScreen />;
       case "home":
         if (!user) return null;
+        if (tab === "training-list") {
+          return <TrainingListScreen onError={setError} />;
+        }
         if (tab === "report-tab") {
           return <ReportTabScreen onError={setError} />;
         }
@@ -132,6 +136,13 @@ function App() {
           >
             <span className="tab-icon">🏠</span>
             <span className="tab-label">ホーム</span>
+          </button>
+          <button
+            className={`tab-button ${tab === "training-list" ? "active" : ""}`}
+            onClick={() => setTab("training-list")}
+          >
+            <span className="tab-icon">💪</span>
+            <span className="tab-label">一覧</span>
           </button>
           <button
             className={`tab-button ${tab === "report-tab" ? "active" : ""}`}

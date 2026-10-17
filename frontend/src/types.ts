@@ -19,6 +19,8 @@ export type Exercise = {
   name: string;
   duration_sec: number;
   image: string;
+  body_part: string;
+  calories: number;
 };
 
 export type WorkoutMenu = {
@@ -28,6 +30,7 @@ export type WorkoutMenu = {
   target_workout_level: number;
   base_duration_sec: number;
   base_calories: number;
+  body_parts: string[];
   exercises: Exercise[];
 };
 
