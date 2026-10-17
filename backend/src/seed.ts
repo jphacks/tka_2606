@@ -4,7 +4,7 @@ import type { WorkoutMenu } from "./types.js";
 const MENUS: WorkoutMenu[] = [
   {
     id: "gif-workout-easy",
-    title: "ゆるめGIFトレーニング",
+    title: "ゆるめトレーニング",
     description: "体を起こす軽めのトレーニング",
     target_workout_level: 1,
     base_duration_sec: 60,
@@ -17,7 +17,7 @@ const MENUS: WorkoutMenu[] = [
   },
   {
     id: "gif-workout-normal",
-    title: "ふつうGIFトレーニング",
+    title: "ふつうトレーニング",
     description: "筋トレと有酸素運動を組み合わせたトレーニング",
     target_workout_level: 2,
     base_duration_sec: 60,
@@ -30,7 +30,7 @@ const MENUS: WorkoutMenu[] = [
   },
   {
     id: "gif-workout-hard",
-    title: "しっかりGIFトレーニング",
+    title: "しっかりトレーニング",
     description: "心拍数をしっかり上げるトレーニング",
     target_workout_level: 3,
     base_duration_sec: 60,
