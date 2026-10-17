@@ -16,13 +16,15 @@ export const workouts = new Hono();
 // 運動完了を記録し、ストリーク・XP・レベルを更新する
 workouts.post("/", async (c) => {
   const userId = getUserId(c);
-  const { menu_id, intensity } = await c.req.json<{
+  const { menu_id, intensity: requestedIntensity } = await c.req.json<{
     menu_id: string;
     intensity: Intensity;
   }>();
-  if (!["low", "normal", "high"].includes(intensity)) {
+  if (!["low", "normal", "high"].includes(requestedIntensity)) {
     return c.json({ error: "Invalid intensity" }, 400);
   }
+  // カスタムメニューは設定で決めた秒数でやるので、強度は「普通」に固定する
+  const intensity: Intensity = menu_id === CUSTOM_MENU_ID ? "normal" : requestedIntensity;
 
   const userRef = db.collection(COLLECTIONS.users).doc(userId);
   const logRef = db.collection(COLLECTIONS.logs).doc();

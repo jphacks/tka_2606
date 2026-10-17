@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { AccountMenu } from "../components/AccountMenu";
+import { CUSTOM_MENU_ID } from "../customMenu";
 import { WorkoutLevelSelector } from "../components/WorkoutLevelSelector";
 import type { CustomMenu, Intensity, User, WorkoutMenu } from "../types";
 
@@ -69,7 +70,10 @@ export function HomeScreen({
     }
   };
 
-  const m = INTENSITY_MULTIPLIER[intensity];
+  // カスタムメニューは設定で決めた秒数でやるので、＋／－は出さず強度を「普通」に固定する
+  const isCustom = menu?.id === CUSTOM_MENU_ID;
+  const effectiveIntensity: Intensity = isCustom ? "normal" : intensity;
+  const m = INTENSITY_MULTIPLIER[effectiveIntensity];
 
   return (
     <div className="screen">
@@ -97,15 +101,22 @@ export function HomeScreen({
             全{menu.exercises.length}種目 ／ 約
             {Math.round(menu.base_calories * m)}kcal
           </p>
-          <div className="stepper">
-            <button onClick={() => changeIntensity(-1)}>－</button>
-            <span>
-              {Math.round((menu.base_duration_sec * m) / 60)}分（
-              {INTENSITY_LABEL[intensity]}）
-            </span>
-            <button onClick={() => changeIntensity(1)}>＋</button>
-          </div>
-          <button className="primary" onClick={() => onStart(menu, intensity)}>
+          {isCustom ? (
+            <p className="stepper">
+              約{Math.max(1, Math.round(menu.base_duration_sec / 60))}分（1種目
+              {menu.exercises[0]?.duration_sec ?? 0}秒）
+            </p>
+          ) : (
+            <div className="stepper">
+              <button onClick={() => changeIntensity(-1)}>－</button>
+              <span>
+                {Math.round((menu.base_duration_sec * m) / 60)}分（
+                {INTENSITY_LABEL[intensity]}）
+              </span>
+              <button onClick={() => changeIntensity(1)}>＋</button>
+            </div>
+          )}
+          <button className="primary" onClick={() => onStart(menu, effectiveIntensity)}>
             スタート
           </button>
         </div>
