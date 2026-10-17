@@ -58,8 +58,17 @@ function App() {
     }
   };
 
+  // ゆるめ等を選ぶと、カスタムの選択は外れる
   const updateWorkoutLevel = (workoutLevel: number) => {
-    setUser((u) => (u ? { ...u, workout_level: workoutLevel } : u));
+    setUser((u) =>
+      u
+        ? {
+            ...u,
+            workout_level: workoutLevel,
+            custom_menu: u.custom_menu ? { ...u.custom_menu, selected: false } : u.custom_menu,
+          }
+        : u,
+    );
   };
 
   const updateCustomMenu = (customMenu: CustomMenu) => {
@@ -106,6 +115,7 @@ function App() {
               setScreen({ name: "workout", menu, intensity })
             }
             onChangeWorkoutLevel={updateWorkoutLevel}
+            onSelectCustomMenu={updateCustomMenu}
             onLogout={handleLogout}
             onError={setError}
           />

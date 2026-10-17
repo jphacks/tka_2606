@@ -748,3 +748,16 @@ button.primary {
   font-weight: bold;
   color: var(--accent);
 }
+
+/* 運動レベルが4つ (カスタムを含む) になったので、狭い画面では折り返す */
+.level-selector {
+  flex-wrap: wrap;
+}
+
+.level-selector .segmented button {
+  padding: 8px 10px;
+}
+
+.segmented button:disabled:not(.selected) {
+  opacity: 0.4;
+}
