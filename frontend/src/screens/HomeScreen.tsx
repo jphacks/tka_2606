@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { AccountMenu } from "../components/AccountMenu";
 import { CUSTOM_MENU_ID } from "../customMenu";
+import { Pet } from "../components/Pet";
 import { WorkoutLevelSelector } from "../components/WorkoutLevelSelector";
 import type { CustomMenu, Intensity, User, WorkoutMenu } from "../types";
 import { formatDuration } from "../formatDuration";
@@ -60,7 +61,10 @@ export function HomeScreen({
       <header className="home-header">
         <div className="status">
           <span>🔥 {user.current_streak}日連続</span>
-          <span>Lv. {user.user_level}</span>
+          <span className="status-level">
+            <Pet userLevel={user.user_level} static />
+            Lv. {user.user_level}
+          </span>
         </div>
         <AccountMenu user={user} onLogout={onLogout} />
       </header>
