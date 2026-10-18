@@ -8,7 +8,13 @@ import { ReportTabScreen } from "./screens/ReportTabScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
 import { TrainingListScreen } from "./screens/TrainingListScreen";
 import { WorkoutScreen } from "./screens/WorkoutScreen";
-import type { CustomMenu, Intensity, User, WorkoutMenu, WorkoutResult } from "./types";
+import type {
+  CustomMenu,
+  Intensity,
+  User,
+  WorkoutMenu,
+  WorkoutResult,
+} from "./types";
 import "./App.css";
 
 type Screen =
@@ -54,6 +60,12 @@ function App() {
     }
   }, [isHomeLike]);
 
+  // macOS の自動再生制限を解除するため、最初のユーザー操作でも再生を試みる
+  const handleAudioInteraction = () => {
+    if (!isHomeLike) return;
+    homeBgmRef.current?.play().catch(() => {});
+  };
+
   // 起動時にログイン中か確認する
   useEffect(() => {
     api
@@ -89,7 +101,9 @@ function App() {
         ? {
             ...u,
             workout_level: workoutLevel,
-            custom_menu: u.custom_menu ? { ...u.custom_menu, selected: false } : u.custom_menu,
+            custom_menu: u.custom_menu
+              ? { ...u.custom_menu, selected: false }
+              : u.custom_menu,
           }
         : u,
     );
@@ -130,7 +144,13 @@ function App() {
           return <ReportTabScreen onError={setError} />;
         }
         if (tab === "settings") {
-          return <SettingsScreen user={user} onSaved={updateCustomMenu} onError={setError} />;
+          return (
+            <SettingsScreen
+              user={user}
+              onSaved={updateCustomMenu}
+              onError={setError}
+            />
+          );
         }
         return (
           <HomeScreen
@@ -166,7 +186,7 @@ function App() {
   };
 
   return (
-    <div className="app">
+    <div className="app" onClickCapture={handleAudioInteraction}>
       {error ? <p className="error">{error}</p> : null}
       {renderScreen()}
 
