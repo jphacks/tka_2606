@@ -135,7 +135,7 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
     return (
       <div className="screen countdown">
         <p>まもなくスタート</p>
-        <p className="countdown-number" aria-live="assertive">
+        <p className="countdown-number" key={count} aria-live="assertive">
           {count}
         </p>
         <p className="sub">

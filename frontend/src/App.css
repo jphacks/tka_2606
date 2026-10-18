@@ -133,6 +133,25 @@
   line-height: 1;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
+  animation: countdown-pop 1s ease-out;
+}
+
+/* 数字が変わるたびに、大きく出てから落ち着く */
+@keyframes countdown-pop {
+  from {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  30% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .countdown-number {
+    animation: none;
+  }
 }
 
 /* 運動中の円形ゲージ */
