@@ -48,6 +48,9 @@ const REST_SEC = 5;
 // ゲージを滑らかに動かすため、0.1秒ごとに経過時間を進める
 const TICK_MS = 100;
 
+// 運動が始まる前のカウントダウンの秒数
+const COUNTDOWN_SEC = 3;
+
 // タイマーの区切り。種目と休憩を交互に並べる (最後の種目のあとに休憩はない)
 type Segment =
   | {
@@ -100,7 +103,8 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
   );
   const totalSec = segments.reduce((sum, s) => sum + s.duration_sec, 0);
 
-  const [elapsedMs, setElapsedMs] = useState(0);
+  // マイナスの間はカウントダウン (-3秒から始めて、0秒で1種目めが始まる)
+  const [elapsedMs, setElapsedMs] = useState(-COUNTDOWN_SEC * 1000);
   const [paused, setPaused] = useState(false);
   const finished = useRef(false);
   const elapsed = elapsedMs / 1000;
@@ -119,15 +123,16 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
     };
   }, []);
 
+  const inCountdown = elapsed < 0;
   useEffect(() => {
     const audio = bgmRef.current;
     if (!audio) return;
-    if (paused || !bgmOn || finished.current) {
+    if (paused || !bgmOn || finished.current || inCountdown) {
       audio.pause();
     } else {
       audio.play().catch(() => {});
     }
-  }, [paused, bgmOn]);
+  }, [paused, bgmOn, inCountdown]);
 
   const handleFinishWithBgm = useCallback(() => {
     bgmRef.current?.pause();
@@ -153,6 +158,25 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
       handleFinishWithBgm();
     }
   }, [elapsed, totalSec, handleFinishWithBgm]);
+
+  // カウントダウン中は、最初の種目を見せて構えてもらう
+  if (elapsed < 0) {
+    const first = exercises[0];
+    const count = Math.ceil(-elapsed);
+    return (
+      <div className="screen countdown">
+        <p>まもなくスタート</p>
+        <p className="countdown-number" key={count} aria-live="assertive">
+          {count}
+        </p>
+        <p className="sub">
+          1種目め: <strong>{first.name}</strong>
+        </p>
+        <img className="workout-gif" src={WORKOUT_IMAGES[first.image]} alt={first.name} />
+        <button onClick={() => setElapsedMs(0)}>すぐ始める</button>
+      </div>
+    );
+  }
 
   // 経過時間から現在の区切りと残り時間を求める
   let index = 0;
