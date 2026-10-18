@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { CalendarDay } from "../types";
+import { formatDuration } from "../formatDuration";
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -86,7 +87,7 @@ export function Calendar({ onError }: Props) {
               className={className}
               title={
                 record
-                  ? `${Math.round(record.total_duration_sec / 60)}分 / ${record.total_calories}kcal`
+                  ? `${formatDuration(record.total_duration_sec)} / ${record.total_calories}kcal`
                   : undefined
               }
             >

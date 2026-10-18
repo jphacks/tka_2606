@@ -27,10 +27,15 @@ export function ReportTabScreen({ onError }: Props) {
             <>
               <div className="report-stats">
                 <div className="report-stat">
+                  {/* 1分未満なら秒で出す */}
                   <span className="report-stat-value">
-                    {Math.round(report.total_duration_sec / 60)}
+                    {report.total_duration_sec < 60
+                      ? report.total_duration_sec
+                      : Math.round(report.total_duration_sec / 60)}
                   </span>
-                  <span className="report-stat-label">分</span>
+                  <span className="report-stat-label">
+                    {report.total_duration_sec < 60 ? "秒" : "分"}
+                  </span>
                 </div>
                 <div className="report-stat">
                   <span className="report-stat-value">{report.total_calories}</span>

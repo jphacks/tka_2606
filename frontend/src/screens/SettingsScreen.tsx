@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
 import { caloriesFor, CUSTOM_MENU_DURATIONS, CUSTOM_MENU_MAX_EXERCISES } from "../customMenu";
 import type { CustomMenu, Exercise, User } from "../types";
+import { formatDuration } from "../formatDuration";
 
 // 設定タブで編集する部分 (ホームで選んでいるかどうかは含めない)
 type Draft = Pick<CustomMenu, "exercise_names" | "exercise_duration_sec">;
@@ -158,7 +159,7 @@ export function SettingsScreen({ user, onSaved, onError }: Props) {
 
         {selected.length > 0 ? (
           <p className="custom-total">
-            合計 約{Math.max(1, Math.round(totalSec / 60))}分 ／ <strong>約{totalCaloriesFor(sec)}kcal</strong>
+            合計 {formatDuration(totalSec)} ／ <strong>約{totalCaloriesFor(sec)}kcal</strong>
           </p>
         ) : null}
 
