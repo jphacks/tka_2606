@@ -1189,18 +1189,56 @@ button.primary {
   gap: 2px;
 }
 
-/* リザルト画面で動くペット */
+/* 動くペット + 吹き出しエリア */
 .pet-area {
   position: relative;
   width: 100%;
-  height: 100px;
+  height: 120px;
   overflow: hidden;
   margin-top: 8px;
 }
 
+/* 吹き出し */
+.pet-bubble {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 80%;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: var(--accent-bg);
+  border: 1.5px solid var(--accent-border);
+  color: var(--text-h);
+  font-size: 13px;
+  font-weight: bold;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  animation: bubble-in 0.4s ease-out;
+}
+
+.pet-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid var(--accent-border);
+}
+
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.9); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
 .pet-container {
   position: absolute;
-  bottom: 16px;
+  bottom: 4px;
   left: 0;
   width: fit-content;
 }
@@ -1324,7 +1362,8 @@ button.primary {
   .pet-walk .pet-character,
   .pet-sparkle,
   .pet-evolution-flash,
-  .pet-evolution-text {
+  .pet-evolution-text,
+  .pet-bubble {
     animation: none;
   }
   .pet-rock {
