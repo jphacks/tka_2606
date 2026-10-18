@@ -4,7 +4,7 @@ import { AccountMenu } from "../components/AccountMenu";
 import { CUSTOM_MENU_ID } from "../customMenu";
 import { Pet } from "../components/Pet";
 import { WorkoutLevelSelector } from "../components/WorkoutLevelSelector";
-import type { CustomMenu, Intensity, User, WorkoutMenu } from "../types";
+import type { CustomMenu, Intensity, TodayReport, User, WorkoutMenu } from "../types";
 import { formatDuration } from "../formatDuration";
 
 // 時間の＋／－ (強度) はなくし、どのメニューも決まった秒数 (強度「普通」) でやる
@@ -29,6 +29,7 @@ export function HomeScreen({
 }: Props) {
   const [menu, setMenu] = useState<WorkoutMenu | null>(null);
   const [todayCount, setTodayCount] = useState(0);
+  const [todayReport, setTodayReport] = useState<TodayReport | null>(null);
 
   // カスタムメニューの設定が変わったら、今日のメニューを取り直す
   const customMenuKey = JSON.stringify(user.custom_menu ?? null);
@@ -37,13 +38,15 @@ export function HomeScreen({
     let ignore = false; // レベルを素早く切り替えたとき、古い結果で上書きしない
     const fetchData = async () => {
       try {
-        const [menu, { count }] = await Promise.all([
+        const [menu, { count }, report] = await Promise.all([
           api.getTodayMenu(),
           api.getTodayCount(),
+          api.getTodayReport(),
         ]);
         if (ignore) return;
         setMenu(menu);
         setTodayCount(count);
+        setTodayReport(report);
       } catch (e) {
         onError((e as Error).message);
       }
@@ -107,6 +110,8 @@ export function HomeScreen({
       )}
 
       <p className="sub">今日 {todayCount}人 が運動を完了しました</p>
+
+      <Pet userLevel={user.user_level} user={user} todayReport={todayReport} />
     </div>
   );
 }
