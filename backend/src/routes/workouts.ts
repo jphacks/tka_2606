@@ -9,6 +9,7 @@ import {
   xpToNextLevel,
 } from "../services/progress.js";
 import { buildCustomMenu, CUSTOM_MENU_ID, hasCustomMenu } from "../services/customMenu.js";
+import { buildOneExerciseMenu, parseOneExerciseMenuId } from "../services/oneExerciseMenu.js";
 import type { Intensity, User, WorkoutLog, WorkoutMenu } from "../types.js";
 
 export const workouts = new Hono();
@@ -40,9 +41,15 @@ workouts.post("/", async (c) => {
       if (!hasCustomMenu(user.custom_menu)) return null;
       menu = buildCustomMenu(user.custom_menu);
     } else {
-      const menuDoc = await tx.get(db.collection(COLLECTIONS.menus).doc(menu_id));
+      // 1種目メニュー ("元のメニューID@種目の番号") なら、その種目だけで計算する
+      const single = parseOneExerciseMenuId(menu_id);
+      const menuDoc = await tx.get(db.collection(COLLECTIONS.menus).doc(single?.menuId ?? menu_id));
       if (!menuDoc.exists) return null;
       menu = { id: menuDoc.id, ...menuDoc.data() } as WorkoutMenu;
+      if (single) {
+        if (single.index >= menu.exercises.length) return null;
+        menu = buildOneExerciseMenu(menu, single.index);
+      }
     }
     const now = new Date();
 
