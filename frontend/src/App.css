@@ -336,8 +336,29 @@ button.primary {
   text-align: left;
 }
 
-.level-help-panel div + div {
-  margin-top: 8px;
+.level-help-panel dl {
+  margin: 0;
+}
+
+.level-help-panel dl > div + div {
+  margin-top: 10px;
+}
+
+/* 選び方の目安 */
+.level-help-intro {
+  margin: 0 0 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--accent);
+}
+
+/* 「〇〇な人に」 */
+.level-help-target {
+  display: block;
+  font-weight: bold;
+  color: var(--text-h);
 }
 
 .level-help-panel dt {
