@@ -181,7 +181,7 @@ function App() {
   };
 
   return (
-    <div className="app" onClickCapture={handleAudioInteraction}>
+    <div className={`app ${showTabs ? "with-tabs" : ""}`} onClickCapture={handleAudioInteraction}>
       {error ? <p className="error">{error}</p> : null}
       {renderScreen()}
 

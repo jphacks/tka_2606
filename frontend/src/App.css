@@ -4,7 +4,12 @@
   width: 100%;
   max-width: 452px;
   margin: 0 auto;
-  padding: 24px 16px 80px;
+  padding: 24px 16px;
+}
+
+/* 下のタブがある画面は、浮いているタブバーに隠れない分あける */
+.app.with-tabs {
+  padding-bottom: 104px;
 }
 
 .screen {
@@ -398,16 +403,24 @@ button.primary {
 }
 
 /* ボトムタブ */
+/* 画面の下から少し浮かせた、角の丸いタブバー */
 .bottom-tabs {
   position: fixed;
-  bottom: 0;
+  bottom: calc(12px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
-  width: 100%;
+  box-sizing: border-box;
+  width: calc(100% - 24px);
   max-width: 420px;
   display: flex;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 12px 32px -8px rgba(0, 0, 0, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.06);
   z-index: 100;
 }
 
@@ -417,22 +430,55 @@ button.primary {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 8px 0 12px;
+  padding: 6px 0 8px;
   border: none;
-  border-radius: 0;
+  border-radius: 20px;
   background: none;
   color: var(--text);
   font-size: 14px;
   cursor: pointer;
 }
 
+/* 選んでいるタブはロゴの色で塗り、それ以外はアイコンを灰色にして明暗をはっきり分ける */
 .tab-button.active {
-  color: var(--accent);
+  background: var(--brand-gradient);
+  color: #fff;
   font-weight: bold;
+  box-shadow: 0 4px 12px -4px rgba(240, 74, 35, 0.7);
 }
 
 .tab-icon {
   font-size: 20px;
+  filter: grayscale(1);
+  opacity: 0.5;
+  transition:
+    filter 0.2s,
+    opacity 0.2s;
+}
+
+.tab-button.active .tab-icon {
+  filter: none;
+  opacity: 1;
+}
+
+.tab-button {
+  transition: background 0.2s;
+}
+
+/* ダークモードでは、背景より明るいバーにして浮かせる */
+@media (prefers-color-scheme: dark) {
+  .bottom-tabs {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(44, 45, 54, 0.92);
+  }
+
+  .tab-button {
+    color: #c3c6cf;
+  }
+
+  .tab-icon {
+    opacity: 0.7;
+  }
 }
 
 .tab-label {
@@ -1532,7 +1578,7 @@ button.primary {
   gap: 12px;
   /* スマホでも1画面に収める (上の余白を詰め、下のタブの分を引いた高さ。余った分はペットの場所にする) */
   box-sizing: border-box;
-  height: calc(100svh - 92px);
+  height: calc(100svh - 116px);
   margin-top: -12px;
 }
 
