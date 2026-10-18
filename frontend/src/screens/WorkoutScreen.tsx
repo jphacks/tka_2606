@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TimerRing } from "../components/TimerRing";
 import type { Intensity, WorkoutMenu } from "../types";
+import bgmSrc from "../assets/audio/bodyweight-training-ii_1cfde3fa.mp3";
 import standingForwardBend from "../assets/workouts/standing-forward-bend.gif";
 import abs from "../assets/workouts/abs.gif";
 import highKnees from "../assets/workouts/high-knees.gif";
@@ -108,6 +109,35 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
   const finished = useRef(false);
   const elapsed = elapsedMs / 1000;
 
+  const bgmRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const audio = new Audio(bgmSrc);
+    audio.loop = true;
+    audio.volume = 0.4;
+    bgmRef.current = audio;
+    return () => {
+      audio.pause();
+      audio.src = "";
+    };
+  }, []);
+
+  const inCountdown = elapsed < 0;
+  useEffect(() => {
+    const audio = bgmRef.current;
+    if (!audio) return;
+    if (paused || finished.current || inCountdown) {
+      audio.pause();
+    } else {
+      audio.play().catch(() => {});
+    }
+  }, [paused, inCountdown]);
+
+  const handleFinishWithBgm = useCallback(() => {
+    bgmRef.current?.pause();
+    onFinish();
+  }, [onFinish]);
+
   // 実際に経った時間を足していく (タブが裏に回って setInterval が遅れてもずれない)
   useEffect(() => {
     if (paused) return;
@@ -124,9 +154,9 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
   useEffect(() => {
     if (elapsed >= totalSec && !finished.current) {
       finished.current = true;
-      onFinish();
+      handleFinishWithBgm();
     }
-  }, [elapsed, totalSec, onFinish]);
+  }, [elapsed, totalSec, handleFinishWithBgm]);
 
   // カウントダウン中は、最初の種目を見せて構えてもらう
   if (elapsed < 0) {

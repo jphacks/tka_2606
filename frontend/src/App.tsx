@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, api } from "./api/client";
+import homeBgmSrc from "./assets/audio/listening-to-the-rain_c55a55c1.mp3";
 import { HomeScreen } from "./screens/HomeScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { ReportScreen } from "./screens/ReportScreen";
@@ -7,7 +8,13 @@ import { ReportTabScreen } from "./screens/ReportTabScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
 import { TrainingListScreen } from "./screens/TrainingListScreen";
 import { WorkoutScreen } from "./screens/WorkoutScreen";
-import type { CustomMenu, Intensity, User, WorkoutMenu, WorkoutResult } from "./types";
+import type {
+  CustomMenu,
+  Intensity,
+  User,
+  WorkoutMenu,
+  WorkoutResult,
+} from "./types";
 import "./App.css";
 
 type Screen =
@@ -29,6 +36,35 @@ function App() {
   const [tab, setTab] = useState<Tab>("home");
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState("");
+  const homeBgmRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const audio = new Audio(homeBgmSrc);
+    audio.loop = true;
+    audio.volume = 0.3;
+    homeBgmRef.current = audio;
+    return () => {
+      audio.pause();
+      audio.src = "";
+    };
+  }, []);
+
+  const isHomeLike = screen.name === "home" || screen.name === "login";
+  useEffect(() => {
+    const audio = homeBgmRef.current;
+    if (!audio) return;
+    if (isHomeLike) {
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
+  }, [isHomeLike]);
+
+  // macOS の自動再生制限を解除するため、最初のユーザー操作でも再生を試みる
+  const handleAudioInteraction = () => {
+    if (!isHomeLike) return;
+    homeBgmRef.current?.play().catch(() => {});
+  };
 
   // 起動時にログイン中か確認する
   useEffect(() => {
@@ -65,7 +101,9 @@ function App() {
         ? {
             ...u,
             workout_level: workoutLevel,
-            custom_menu: u.custom_menu ? { ...u.custom_menu, selected: false } : u.custom_menu,
+            custom_menu: u.custom_menu
+              ? { ...u.custom_menu, selected: false }
+              : u.custom_menu,
           }
         : u,
     );
@@ -106,7 +144,13 @@ function App() {
           return <ReportTabScreen onError={setError} />;
         }
         if (tab === "settings") {
-          return <SettingsScreen user={user} onSaved={updateCustomMenu} onError={setError} />;
+          return (
+            <SettingsScreen
+              user={user}
+              onSaved={updateCustomMenu}
+              onError={setError}
+            />
+          );
         }
         return (
           <HomeScreen
@@ -142,7 +186,7 @@ function App() {
   };
 
   return (
-    <div className="app">
+    <div className="app" onClickCapture={handleAudioInteraction}>
       {error ? <p className="error">{error}</p> : null}
       {renderScreen()}
 
