@@ -848,3 +848,322 @@ button.primary {
   letter-spacing: 0.2em;
   color: var(--accent);
 }
+
+/* ===== クリア画面の演出 ===== */
+.clear-screen {
+  position: relative;
+  padding-top: 24px;
+}
+
+/* 紙吹雪は画面全体に重ねる (タップは下に通す) */
+.confetti {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* 最初に画面が一瞬白く光る */
+.clear-flash {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle, #fff 0%, #ffd27a 40%, transparent 75%);
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0;
+  animation: clear-flash 0.7s ease-out;
+}
+
+@keyframes clear-flash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* タイトルの後ろで回り続ける放射状の光 */
+.clear-burst {
+  position: absolute;
+  top: -70px;
+  left: 50%;
+  width: 340px;
+  height: 340px;
+  margin-left: -170px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    rgba(255, 170, 0, 0.35) 0deg 10deg,
+    transparent 10deg 20deg
+  );
+  mask: radial-gradient(circle, #000 20%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+  animation:
+    clear-burst-in 0.6s ease-out,
+    clear-spin 12s linear infinite;
+}
+
+@keyframes clear-burst-in {
+  from {
+    transform: scale(0);
+  }
+}
+
+@keyframes clear-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* 「CLEAR!!」の文字が1文字ずつ上から叩きつけられる */
+.clear-title {
+  margin: 0;
+  font-size: 64px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: 2px;
+  font-style: italic;
+}
+
+.clear-title span {
+  display: inline-block;
+  background: linear-gradient(180deg, #ffe066 0%, #ff8a00 55%, #ff3d00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 4px 0 rgba(150, 50, 0, 0.35))
+    drop-shadow(0 0 12px rgba(255, 140, 0, 0.6));
+  animation:
+    clear-slam 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) backwards,
+    clear-wiggle 1.8s ease-in-out 1.2s infinite;
+}
+
+@keyframes clear-slam {
+  from {
+    transform: translateY(-80px) scale(2.4) rotate(-15deg);
+    opacity: 0;
+  }
+}
+
+@keyframes clear-wiggle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.clear-subtitle {
+  margin: 0;
+  font-weight: bold;
+  color: var(--text-h);
+  animation: clear-rise 0.5s ease-out 0.45s backwards;
+}
+
+/* 数字のカードが順番に飛び出す */
+.clear-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.clear-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 4px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, #fff4e0, #ffe0b8);
+  box-shadow: var(--shadow);
+  animation: clear-pop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) backwards;
+}
+
+.clear-stat-value {
+  font-size: 20px;
+  font-weight: 900;
+  color: #e85d00;
+  font-variant-numeric: tabular-nums;
+}
+
+.clear-stat-label {
+  font-size: 12px;
+  color: #8a5a2b;
+}
+
+@keyframes clear-pop {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes clear-rise {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+
+/* 連続日数。炎が燃えるように揺れる */
+.clear-streak {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  color: var(--text-h);
+  animation: clear-rise 0.5s ease-out backwards;
+}
+
+.clear-streak-flame {
+  display: inline-block;
+  font-size: 36px;
+  animation: clear-flame 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes clear-flame {
+  from {
+    transform: scale(1) rotate(-6deg);
+  }
+  to {
+    transform: scale(1.25) rotate(6deg);
+  }
+}
+
+.clear-streak-before {
+  color: var(--text);
+  text-decoration: line-through;
+}
+
+.clear-streak-after {
+  color: #e85d00;
+  font-size: 22px;
+}
+
+/* XP ゲージ */
+.clear-xp {
+  width: 100%;
+  animation: clear-rise 0.5s ease-out backwards;
+}
+
+.clear-xp-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text-h);
+}
+
+.clear-xp-track {
+  height: 14px;
+  margin-top: 4px;
+  border-radius: 7px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.clear-xp-bar {
+  height: 100%;
+  border-radius: 7px;
+  background: linear-gradient(90deg, #ffb300, #ff5e00);
+  background-size: 200% 100%;
+  box-shadow: 0 0 10px rgba(255, 120, 0, 0.7);
+  transition: width 0.9s cubic-bezier(0.3, 0.8, 0.3, 1);
+  animation: clear-shine 1.2s linear infinite;
+}
+
+.clear-xp-bar.no-transition {
+  transition: none;
+}
+
+@keyframes clear-shine {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* レベルアップ。画面の真ん中にどーんと出して、少しして消える */
+.level-up {
+  position: fixed;
+  top: 38%;
+  left: 50%;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 32px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #ff3d71, #ff8a00, #ffd000);
+  color: #fff;
+  box-shadow:
+    0 0 0 6px rgba(255, 255, 255, 0.8),
+    0 0 40px rgba(255, 120, 0, 0.9);
+  pointer-events: none;
+  translate: -50% -50%;
+  animation: level-up 2.2s cubic-bezier(0.2, 1.4, 0.4, 1) forwards;
+}
+
+.level-up-text {
+  font-size: 40px;
+  white-space: nowrap;
+  font-weight: 900;
+  font-style: italic;
+  text-shadow: 0 3px 0 rgba(120, 30, 0, 0.4);
+}
+
+.level-up-level {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+@keyframes level-up {
+  0% {
+    transform: scale(0) rotate(-20deg);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1.15) rotate(3deg);
+    opacity: 1;
+  }
+  30%,
+  80% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.clear-home-button {
+  animation: clear-rise 0.5s ease-out backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clear-flash,
+  .clear-burst,
+  .clear-title span,
+  .clear-subtitle,
+  .clear-stat,
+  .clear-streak,
+  .clear-streak-flame,
+  .clear-xp,
+  .clear-xp-bar,
+  .clear-home-button {
+    animation: none;
+  }
+  .clear-xp-bar {
+    transition: none;
+  }
+  .level-up {
+    position: static;
+    translate: none;
+    animation: none;
+  }
+}

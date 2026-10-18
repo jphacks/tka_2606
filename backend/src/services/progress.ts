@@ -9,12 +9,15 @@ const INTENSITY_MULTIPLIER: Record<Intensity, number> = {
   high: 1.5,
 };
 
+// 一時的に獲得 XP を10倍にしている (レベルアップ演出の確認用)。戻すときは 1 にする
+const XP_BOOST = 100;
+
 export function calcWorkoutResult(menu: WorkoutMenu, intensity: Intensity) {
   const m = INTENSITY_MULTIPLIER[intensity];
   const actual_duration_sec = Math.round(menu.base_duration_sec * m);
   const actual_calories = Math.round(menu.base_calories * m);
-  // 1分 = 10XP
-  const earned_xp = Math.round((actual_duration_sec / 60) * 10);
+  // 1分 = 10XP (XP_BOOST 倍)
+  const earned_xp = Math.round((actual_duration_sec / 60) * 10 * XP_BOOST);
   return { actual_duration_sec, actual_calories, earned_xp };
 }
 
@@ -42,7 +45,9 @@ export function calcNextStreak(user: User, now = new Date()) {
 
   const last = toJstDateString(new Date(user.last_workout_at));
   const today = toJstDateString(now);
-  const yesterday = toJstDateString(new Date(now.getTime() - 24 * 60 * 60 * 1000));
+  const yesterday = toJstDateString(
+    new Date(now.getTime() - 24 * 60 * 60 * 1000),
+  );
 
   if (last === today) return user.current_streak; // 今日2回目以降は据え置き
   if (last === yesterday) return user.current_streak + 1;
