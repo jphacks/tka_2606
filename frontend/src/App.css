@@ -1,5 +1,8 @@
 .app {
-  max-width: 420px;
+  /* 中身の幅に縮まないよう、いつも横いっぱい (最大 420px + 左右の余白) にする */
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 452px;
   margin: 0 auto;
   padding: 24px 16px 80px;
 }
@@ -96,6 +99,7 @@
 }
 
 .card {
+  box-sizing: border-box;
   width: 100%;
   padding: 16px;
   border: 1px solid var(--border);
