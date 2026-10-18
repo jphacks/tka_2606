@@ -5,9 +5,7 @@ import { playClearSound, playLevelUpSound } from "../clearSound";
 import { useCountUp } from "../useCountUp";
 import type { WorkoutResult } from "../types";
 import { formatDuration } from "../formatDuration";
-
-// backend の services/progress.ts の XP_PER_LEVEL と同じ値
-const XP_PER_LEVEL = 100;
+import { XP_PER_LEVEL } from "../progress";
 
 // 演出のタイミング (ミリ秒)
 const STATS_AT = 600; // 数字が出始める

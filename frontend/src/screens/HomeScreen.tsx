@@ -6,9 +6,18 @@ import { Pet } from "../components/Pet";
 import { WorkoutLevelSelector } from "../components/WorkoutLevelSelector";
 import type { CustomMenu, Intensity, TodayReport, User, WorkoutMenu } from "../types";
 import { formatDuration } from "../formatDuration";
+import { XP_PER_LEVEL } from "../progress";
 
 // 時間の＋／－ (強度) はなくし、どのメニューも決まった秒数 (強度「普通」) でやる
 const FIXED_INTENSITY: Intensity = "normal";
+
+// 時間帯に合わせたあいさつ
+function greeting(hour = new Date().getHours()) {
+  if (hour < 5) return "夜ふかし中";
+  if (hour < 11) return "おはよう";
+  if (hour < 18) return "こんにちは";
+  return "こんばんは";
+}
 
 type Props = {
   user: User;
@@ -58,19 +67,53 @@ export function HomeScreen({
   }, [user.workout_level, customMenuKey, onError]);
 
   const isCustom = menu?.id === CUSTOM_MENU_ID;
+  const doneToday = (todayReport?.logs.length ?? 0) > 0;
+  const xpInLevel = user.total_xp % XP_PER_LEVEL;
+  const name = user.display_name || "ゲスト";
 
   return (
-    <div className="screen">
+    <div className="screen home">
+      <div className="home-bg" aria-hidden="true" />
+
       <header className="home-header">
-        <div className="status">
-          <span>🔥 {user.current_streak}日連続</span>
-          <span className="status-level">
-            <Pet userLevel={user.user_level} static />
-            Lv. {user.user_level}
-          </span>
-        </div>
+        <p className="home-hello">
+          <span className="home-greeting">{greeting()}、</span>
+          {name}さん
+        </p>
         <AccountMenu user={user} onLogout={onLogout} />
       </header>
+
+      <div className="home-stats">
+        <div className="home-stat home-stat-streak">
+          <span className="home-stat-icon" aria-hidden="true">
+            🔥
+          </span>
+          <span>
+            <strong>{user.current_streak}</strong>日連続
+          </span>
+        </div>
+        <div className="home-stat home-stat-level">
+          <Pet userLevel={user.user_level} static />
+          <span className="home-level">
+            <span>
+              Lv. <strong>{user.user_level}</strong>
+            </span>
+            <span
+              className="home-xp-track"
+              role="progressbar"
+              aria-label="次のレベルまでの経験値"
+              aria-valuemin={0}
+              aria-valuemax={XP_PER_LEVEL}
+              aria-valuenow={xpInLevel}
+            >
+              <span
+                className="home-xp-bar"
+                style={{ width: `${(xpInLevel / XP_PER_LEVEL) * 100}%` }}
+              />
+            </span>
+          </span>
+        </div>
+      </div>
 
       <WorkoutLevelSelector
         workoutLevel={user.workout_level}
@@ -81,37 +124,47 @@ export function HomeScreen({
       />
 
       {menu ? (
-        <div className="card">
-          <p>今日のメニュー</p>
+        <section className="home-hero">
+          <div className="home-hero-top">
+            <span className="home-hero-label">今日のメニュー</span>
+            {doneToday ? <span className="home-hero-done">✓ 今日はクリア済み</span> : null}
+          </div>
           {isCustom ? (
             <>
-              <h2>{menu.title}</h2>
-              <p>
+              <h2 className="home-hero-title">{menu.title}</h2>
+              <p className="home-hero-sub">
                 全{menu.exercises.length}種目 ／ 約{menu.base_calories}kcal
               </p>
             </>
           ) : (
             // どの種目かはスタートするまで隠す (クリアするまで種目は変わらない)
             <>
-              <h2 className="mystery-title">？？？</h2>
-              <p className="sub">何の種目かはスタートしてからのお楽しみ</p>
+              <h2 className="home-hero-title home-mystery">？？？</h2>
+              <p className="home-hero-sub">何が出るかはスタートしてからのお楽しみ</p>
             </>
           )}
-          <p className="stepper">
-            {formatDuration(menu.base_duration_sec)}
+          <span className="home-duration">
+            ⏱ {formatDuration(menu.base_duration_sec)}
             {isCustom ? `（1種目${menu.exercises[0]?.duration_sec ?? 0}秒）` : ""}
-          </p>
-          <button className="primary" onClick={() => onStart(menu, FIXED_INTENSITY)}>
-            スタート
+          </span>
+          <button className="home-start" onClick={() => onStart(menu, FIXED_INTENSITY)}>
+            <span aria-hidden="true">▶</span>
+            {doneToday ? "もう1回やる" : "スタート"}
           </button>
-        </div>
+        </section>
       ) : (
-        <p>読み込み中...</p>
+        <section className="home-hero home-hero-loading">
+          <p>読み込み中...</p>
+        </section>
       )}
 
-      <p className="sub">今日 {todayCount}人 が運動を完了しました</p>
+      <p className="home-count">
+        <span aria-hidden="true">👥</span> 今日 <strong>{todayCount}人</strong> が運動を完了しました
+      </p>
 
-      <Pet userLevel={user.user_level} user={user} todayReport={todayReport} />
+      <div className="home-pet">
+        <Pet userLevel={user.user_level} user={user} todayReport={todayReport} />
+      </div>
     </div>
   );
 }

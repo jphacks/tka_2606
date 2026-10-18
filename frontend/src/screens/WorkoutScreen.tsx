@@ -58,6 +58,7 @@ type Segment =
       name: string;
       duration_sec: number;
       image: string;
+      body_part: string;
       exerciseIndex: number;
     }
   | { type: "rest"; duration_sec: number; nextExerciseIndex: number };
@@ -203,57 +204,83 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
     </div>
   );
 
+  const pauseButton = (
+    <button className="workout-pause" onClick={() => setPaused(!paused)}>
+      {paused ? "▶ 再開" : "❚❚ 一時停止"}
+    </button>
+  );
+
+  // 休憩中は、次の種目のお手本を見せて準備してもらう
   if (current.type === "rest") {
     const next = exercises[current.nextExerciseIndex];
     return (
-      <div className="screen">
+      <div className="screen workout workout-rest">
         {overall}
-        <p>休憩</p>
-        <h2>次: {next.name}</h2>
-        <TimerRing
-          key={index}
-          remainingSec={remainingSec}
-          progress={progress}
-          variant="rest"
-        />
-        <p className="sub">
-          {current.nextExerciseIndex + 1}/{exercises.length}個目の準備をしよう
-        </p>
-        <button onClick={() => setElapsedMs(segmentEnd * 1000)}>
-          スキップ
-        </button>
-        <button onClick={() => setPaused(!paused)}>
-          {paused ? "再開" : "一時停止"}
-        </button>
+        <div className="workout-tags">
+          <span className="workout-step">休憩</span>
+          <span className="workout-part">
+            次は {current.nextExerciseIndex + 1}/{exercises.length}種目め
+          </span>
+        </div>
+        <h2 className="workout-name">
+          <span className="workout-name-label">次の種目</span>
+          {next.name}
+        </h2>
+        <img className="workout-gif" src={WORKOUT_IMAGES[next.image]} alt={next.name} />
+        <div className="workout-bottom">
+          <TimerRing
+            key={index}
+            remainingSec={remainingSec}
+            progress={progress}
+            variant="rest"
+          />
+          <div className="workout-actions">
+            <button onClick={() => setElapsedMs(segmentEnd * 1000)}>スキップ</button>
+            {pauseButton}
+          </div>
+        </div>
       </div>
     );
   }
 
   const next = exercises[current.exerciseIndex + 1];
   return (
-    <div className="screen">
+    <div className="screen workout">
       {overall}
-      <p>
-        {current.exerciseIndex + 1}/{exercises.length}個目
-      </p>
-      <TimerRing
-        key={index}
-        remainingSec={remainingSec}
-        progress={progress}
-        variant="exercise"
-      />
-      <h2>{current.name}</h2>
-      <p className="sub">
-        次: {next ? `休憩${REST_SEC}秒 → ${next.name}` : "ラスト！"}
-      </p>
-      <button onClick={() => setPaused(!paused)}>
-        {paused ? "再開" : "一時停止"}
-      </button>
+      <div className="workout-tags">
+        <span className="workout-step">
+          {current.exerciseIndex + 1}/{exercises.length}種目め
+        </span>
+        <span className="workout-part">{current.body_part}</span>
+      </div>
+      <h2 className="workout-name">
+        <span className="workout-name-label">いまの種目</span>
+        {current.name}
+      </h2>
       <img
         className="workout-gif"
         src={WORKOUT_IMAGES[current.image]}
         alt={current.name}
       />
+      <p className="workout-hint">お手本の動きをまねしよう</p>
+      <div className="workout-bottom">
+        <TimerRing
+          key={index}
+          remainingSec={remainingSec}
+          progress={progress}
+          variant="exercise"
+        />
+        <div className="workout-actions">{pauseButton}</div>
+      </div>
+      <p className="workout-next">
+        {next ? (
+          <>
+            次: 休憩{REST_SEC}秒 → <strong>{next.name}</strong>
+          </>
+        ) : (
+          <strong>ラスト！ がんばろう</strong>
+        )}
+      </p>
     </div>
   );
 }

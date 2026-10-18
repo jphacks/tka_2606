@@ -34,7 +34,9 @@ export async function fetchGoogleAccount(code: string) {
     }),
   });
   if (!res.ok) {
-    throw new Error(`Google token exchange failed: ${res.status} ${await res.text()}`);
+    throw new Error(
+      `Google token exchange failed: ${res.status} ${await res.text()}`,
+    );
   }
   const { id_token } = (await res.json()) as { id_token: string };
 
@@ -44,6 +46,7 @@ export async function fetchGoogleAccount(code: string) {
     verification: {
       iss: /^(https:\/\/)?accounts\.google\.com$/,
       aud: env.GOOGLE_CLIENT_ID,
+      iat: false,
     },
   });
 
