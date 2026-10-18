@@ -27,3 +27,6 @@ export const CUSTOM_LEVEL = {
   target: "やりたい種目が決まっている人に",
   description: "設定タブで、好きな種目（最大5つ）と時間を選んで自分のメニューを作れます",
 };
+
+// 説明パネルの上に出す、選び方の目安
+export const LEVEL_HELP_INTRO = "迷ったら「ゆるめ」から。物足りなくなったら1つ上げてみましょう";

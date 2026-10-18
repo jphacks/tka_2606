@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
 import type { CustomMenu } from "../types";
-import { CUSTOM_LEVEL, WORKOUT_LEVELS } from "../workoutLevels";
+import { CUSTOM_LEVEL, LEVEL_HELP_INTRO, WORKOUT_LEVELS } from "../workoutLevels";
 
 type Props = {
   workoutLevel: number;
@@ -107,6 +107,7 @@ export function WorkoutLevelSelector({
           </button>
           {helpOpen ? (
             <div className="level-help-panel">
+              <p className="level-help-intro">{LEVEL_HELP_INTRO}</p>
               <dl>
                 {WORKOUT_LEVELS.map(({ level, name, target, description }) => (
                   <div key={level}>

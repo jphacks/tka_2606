@@ -344,6 +344,16 @@ button.primary {
   margin-top: 10px;
 }
 
+/* 選び方の目安 */
+.level-help-intro {
+  margin: 0 0 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--accent);
+}
+
 /* 「〇〇な人に」 */
 .level-help-target {
   display: block;
