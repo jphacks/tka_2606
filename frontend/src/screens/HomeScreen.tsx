@@ -97,11 +97,21 @@ export function HomeScreen({
       {menu ? (
         <div className="card">
           <p>今日のメニュー</p>
-          <h2>{menu.title}</h2>
-          <p>
-            全{menu.exercises.length}種目 ／ 約
-            {Math.round(menu.base_calories * m)}kcal
-          </p>
+          {isCustom ? (
+            <>
+              <h2>{menu.title}</h2>
+              <p>
+                全{menu.exercises.length}種目 ／ 約
+                {Math.round(menu.base_calories * m)}kcal
+              </p>
+            </>
+          ) : (
+            // どの種目かはスタートするまで隠す (クリアするまで種目は変わらない)
+            <>
+              <h2 className="mystery-title">？？？</h2>
+              <p className="sub">何の種目かはスタートしてからのお楽しみ</p>
+            </>
+          )}
           {isCustom ? (
             <p className="stepper">
               {formatDuration(menu.base_duration_sec)}（1種目

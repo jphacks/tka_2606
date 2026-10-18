@@ -792,3 +792,9 @@ button.primary {
   font-weight: normal;
   opacity: 0.85;
 }
+
+/* ホームの今日のメニュー (種目名を隠しているとき) */
+.mystery-title {
+  letter-spacing: 0.2em;
+  color: var(--accent);
+}
