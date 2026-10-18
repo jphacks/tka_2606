@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Confetti } from "../components/Confetti";
+import { Pet } from "../components/Pet";
 import { playClearSound, playLevelUpSound } from "../clearSound";
 import { useCountUp } from "../useCountUp";
 import type { WorkoutResult } from "../types";
@@ -123,7 +124,8 @@ export function ReportScreen({ result, onBackHome }: Props) {
         </div>
       ) : null}
 
-      {/* TODO: 他ユーザーの完了通知 */}
+      <Pet userLevel={user.user_level} leveledUp={leveled_up} />
+
       <button
         className="primary clear-home-button"
         style={{ animationDelay: `${leveled_up ? LEVEL_UP_AT + 600 : XP_BAR_AT + 400}ms` }}
