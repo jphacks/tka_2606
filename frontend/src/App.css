@@ -1865,3 +1865,123 @@ button.primary {
   }
 }
 
+/* ===== 運動中の画面 ===== */
+/* 何の種目をやっているかがひと目でわかるよう、種目名とお手本を上に大きく出す */
+.workout {
+  gap: 12px;
+}
+
+.workout-tags {
+  display: flex;
+  gap: 8px;
+}
+
+.workout-step,
+.workout-part {
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.workout-step {
+  background: var(--brand-gradient);
+  color: #fff;
+}
+
+.workout-part {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.workout-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.2;
+  color: var(--text-h);
+}
+
+.workout-name-label {
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+.workout .workout-gif {
+  width: 100%;
+  max-width: 360px;
+}
+
+.workout-hint {
+  margin: -4px 0 0;
+  font-size: 13px;
+}
+
+/* 下はタイマー、その下に操作ボタン */
+.workout-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.workout .timer-ring {
+  width: 120px;
+  flex: none;
+}
+
+.workout .timer-ring .timer {
+  font-size: 32px;
+}
+
+.workout-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.workout-actions button {
+  min-width: 128px;
+}
+
+/* 次の種目の案内 */
+.workout-next {
+  margin: 0;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  font-size: 16px;
+  color: var(--text-h);
+}
+
+.workout-next strong {
+  color: var(--accent);
+}
+
+.workout-pause {
+  border-radius: 999px;
+  font-weight: bold;
+}
+
+.workout-actions button {
+  border-radius: 999px;
+}
+
+/* 休憩中は落ち着いた緑にする */
+.workout-rest .workout-step {
+  background: #10b981;
+}
+
+.workout-rest .workout-name-label {
+  color: #10b981;
+}
+
+.workout-rest .workout-gif {
+  opacity: 0.85;
+}
