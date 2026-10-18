@@ -1371,3 +1371,17 @@ button.primary {
     transform: translateX(-50%);
   }
 }
+
+/* ログイン画面のロゴ */
+.login-logo {
+  width: 100%;
+  margin: 24px 0 8px;
+}
+
+.login-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
