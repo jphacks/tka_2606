@@ -4,6 +4,7 @@ import { AccountMenu } from "../components/AccountMenu";
 import { CUSTOM_MENU_ID } from "../customMenu";
 import { WorkoutLevelSelector } from "../components/WorkoutLevelSelector";
 import type { CustomMenu, Intensity, User, WorkoutMenu } from "../types";
+import { formatDuration } from "../formatDuration";
 
 const INTENSITIES: Intensity[] = ["low", "normal", "high"];
 const INTENSITY_LABEL: Record<Intensity, string> = {
@@ -103,14 +104,14 @@ export function HomeScreen({
           </p>
           {isCustom ? (
             <p className="stepper">
-              約{Math.max(1, Math.round(menu.base_duration_sec / 60))}分（1種目
+              {formatDuration(menu.base_duration_sec)}（1種目
               {menu.exercises[0]?.duration_sec ?? 0}秒）
             </p>
           ) : (
             <div className="stepper">
               <button onClick={() => changeIntensity(-1)}>－</button>
               <span>
-                {Math.round((menu.base_duration_sec * m) / 60)}分（
+                {formatDuration(menu.base_duration_sec * m)}（
                 {INTENSITY_LABEL[intensity]}）
               </span>
               <button onClick={() => changeIntensity(1)}>＋</button>

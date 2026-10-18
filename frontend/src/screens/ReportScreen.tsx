@@ -1,4 +1,5 @@
 import type { WorkoutResult } from "../types";
+import { formatDuration } from "../formatDuration";
 
 type Props = {
   result: WorkoutResult;
@@ -15,7 +16,7 @@ export function ReportScreen({ result, onBackHome }: Props) {
         🔥 {previous_streak}日 → {user.current_streak}日連続達成
       </p>
       <div className="card">
-        <p>運動時間: {Math.round(log.actual_duration_sec / 60)}分</p>
+        <p>運動時間: {formatDuration(log.actual_duration_sec)}</p>
         <p>消費カロリー: {log.actual_calories}kcal</p>
         <p>獲得XP: +{log.earned_xp}</p>
         {leveled_up ? <p>レベルアップ！ Lv. {user.user_level}</p> : null}
