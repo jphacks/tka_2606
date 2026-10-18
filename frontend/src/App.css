@@ -125,6 +125,16 @@
   border-radius: 8px;
 }
 
+/* 運動が始まる前のカウントダウン */
+.countdown-number {
+  margin: 0;
+  font-size: 96px;
+  font-weight: bold;
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
 /* 運動中の円形ゲージ */
 .timer-ring {
   --ring-color: var(--accent);
