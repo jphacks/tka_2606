@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { TodayReport, User } from "../types";
 
 type PetStage = "egg" | "baby" | "child" | "teen" | "royal";
 
@@ -8,6 +9,66 @@ function getPetStage(level: number): PetStage {
   if (level <= 5) return "child";
   if (level <= 7) return "teen";
   return "royal";
+}
+
+function pickPraise(user: User, report: TodayReport | null): string {
+  const todayDone = (report?.logs.length ?? 0) > 0;
+  const streak = user.current_streak;
+  const level = user.user_level;
+  const totalCal = report?.total_calories ?? 0;
+  const totalXp = report?.total_xp ?? 0;
+  const times = report?.logs.length ?? 0;
+
+  if (todayDone) {
+    const done: string[] = [];
+
+    if (times >= 3) done.push("今日3回もやったの!? 天才すぎる!!");
+    else if (times === 2) done.push("2回目! やる気がすごい!");
+
+    if (totalCal >= 100) done.push(`${totalCal}kcalも燃やした! 体が喜んでるよ!`);
+    else if (totalCal >= 30) done.push(`${totalCal}kcal消費! いい汗かいたね!`);
+
+    if (totalXp >= 500) done.push("XP爆稼ぎ! レベルアップまっしぐら!");
+
+    if (streak >= 30) done.push(`${streak}日連続!? もはや伝説だよ!!`);
+    else if (streak >= 14) done.push(`${streak}日連続! 習慣の鬼だね!`);
+    else if (streak >= 7) done.push(`${streak}日連続! 1週間突破おめでとう!`);
+    else if (streak >= 3) done.push(`${streak}日連続! その調子!`);
+
+    if (level >= 8) done.push("最強のパートナーだよ! 一緒にもっと上を目指そう!");
+    else if (level >= 4) done.push("どんどん強くなってるね! ボクもうれしい!");
+
+    done.push(
+      "今日もクリアしてえらい!! 最高!",
+      "すごいすごい! 今日もがんばったね!",
+      "やったー! キミは本当にすごいよ!",
+      "運動おつかれ! ボクが一番のファンだよ!",
+      "かっこよすぎ! 惚れ直しちゃう!",
+    );
+
+    return done[Math.floor(Math.random() * done.length)];
+  }
+
+  // まだ今日やっていない
+  const idle: string[] = [];
+
+  if (streak >= 7) idle.push(`${streak}日連続の記録、今日も守ろう!`);
+  else if (streak >= 1) idle.push("連続記録を伸ばすチャンスだよ!");
+
+  const hour = new Date().getHours();
+  if (hour < 10) idle.push("おはよう! 朝イチの運動は最高だよ!");
+  else if (hour < 14) idle.push("お昼前にサクッと動こう!");
+  else if (hour < 18) idle.push("午後の運動でリフレッシュしよう!");
+  else idle.push("寝る前に軽く動くとぐっすり眠れるよ!");
+
+  idle.push(
+    "今日も一緒にがんばろうね!",
+    "ボクと一緒に運動しよう!",
+    "スタートボタン押してみて!",
+    "キミが来るの待ってたよ!",
+  );
+
+  return idle[Math.floor(Math.random() * idle.length)];
 }
 
 function EggSvg() {
@@ -124,14 +185,17 @@ type Props = {
   userLevel: number;
   leveledUp?: boolean;
   static?: boolean;
+  user?: User;
+  todayReport?: TodayReport | null;
 };
 
 export function Pet(props: Props) {
-  const { userLevel, leveledUp, static: isStatic } = props;
+  const { userLevel, leveledUp, static: isStatic, user, todayReport } = props;
   const stage = getPetStage(userLevel);
   const previousStage = getPetStage(Math.max(1, userLevel - 1));
   const evolved = leveledUp && stage !== previousStage;
   const [showEvolution, setShowEvolution] = useState(evolved);
+  const [praiseKey, setPraiseKey] = useState(0);
 
   useEffect(() => {
     if (!evolved) return;
@@ -139,6 +203,18 @@ export function Pet(props: Props) {
     const timer = setTimeout(() => setShowEvolution(false), 2500);
     return () => clearTimeout(timer);
   }, [evolved]);
+
+  const praise = useMemo(
+    () => (user ? pickPraise(user, todayReport ?? null) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user?.current_streak, user?.user_level, todayReport?.logs.length, praiseKey],
+  );
+
+  useEffect(() => {
+    if (!user) return;
+    const timer = setInterval(() => setPraiseKey((k) => k + 1), 8000);
+    return () => clearInterval(timer);
+  }, [user]);
 
   if (isStatic) {
     return (
@@ -156,6 +232,11 @@ export function Pet(props: Props) {
       {showEvolution && (
         <div className="pet-evolution-flash" key="evolve">
           <span className="pet-evolution-text">✨ 進化！ ✨</span>
+        </div>
+      )}
+      {praise && (
+        <div className="pet-bubble" key={praiseKey}>
+          {praise}
         </div>
       )}
       <div className={`pet-container ${walkClass} ${bounceClass}`}>
