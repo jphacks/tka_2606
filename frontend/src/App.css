@@ -336,8 +336,19 @@ button.primary {
   text-align: left;
 }
 
-.level-help-panel div + div {
-  margin-top: 8px;
+.level-help-panel dl {
+  margin: 0;
+}
+
+.level-help-panel dl > div + div {
+  margin-top: 10px;
+}
+
+/* 「〇〇な人に」 */
+.level-help-target {
+  display: block;
+  font-weight: bold;
+  color: var(--text-h);
 }
 
 .level-help-panel dt {

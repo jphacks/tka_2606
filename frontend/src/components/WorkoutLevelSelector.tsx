@@ -106,21 +106,27 @@ export function WorkoutLevelSelector({
             ?
           </button>
           {helpOpen ? (
-            <dl className="level-help-panel">
-              {WORKOUT_LEVELS.map(({ level, name, description }) => (
-                <div key={level}>
-                  <dt>{name}</dt>
-                  <dd>{description}</dd>
+            <div className="level-help-panel">
+              <dl>
+                {WORKOUT_LEVELS.map(({ level, name, target, description }) => (
+                  <div key={level}>
+                    <dt>{name}</dt>
+                    <dd>
+                      <span className="level-help-target">{target}</span>
+                      {description}
+                    </dd>
+                  </div>
+                ))}
+                <div>
+                  <dt>{CUSTOM_LEVEL.name}</dt>
+                  <dd>
+                    <span className="level-help-target">{CUSTOM_LEVEL.target}</span>
+                    {CUSTOM_LEVEL.description}
+                    {customAvailable ? "" : "（まだ作られていません）"}
+                  </dd>
                 </div>
-              ))}
-              <div>
-                <dt>{CUSTOM_LEVEL.name}</dt>
-                <dd>
-                  {CUSTOM_LEVEL.description}
-                  {customAvailable ? "" : "（まだ作られていません）"}
-                </dd>
-              </div>
-            </dl>
+              </dl>
+            </div>
           ) : null}
         </div>
       </div>
