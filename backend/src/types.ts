@@ -14,7 +14,10 @@ export type User = {
   current_streak: number;
   total_xp: number;
   last_workout_at: string | null; // ISO文字列
-  custom_menu?: CustomMenu | null; // 設定タブで作るカスタムメニュー (未設定なら undefined)
+  custom_menu?: CustomMenu | null;
+  // 運動レベルごとの「次にやる種目」の番号 (キーは運動レベル "1"〜"3")
+  // クリアするまで同じ種目にして、クリアしたら抽選し直す。ホームでは種目名を隠す
+  assigned_exercises?: Record<string, number>; // 設定タブで作るカスタムメニュー (未設定なら undefined)
 };
 
 // 設定タブで作るカスタムメニュー。ホームの運動レベルで「カスタム」を選ぶと、今日のメニューがこれになる

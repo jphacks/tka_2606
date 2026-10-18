@@ -2,6 +2,12 @@ import { Hono } from "hono";
 import { COLLECTIONS, db } from "../firebase.js";
 import { getUserId } from "../middleware.js";
 import { buildCustomMenu, isCustomMenuSelected } from "../services/customMenu.js";
+import {
+  assignedExerciseField,
+  assignedExerciseIndex,
+  buildOneExerciseMenu,
+  pickExerciseIndex,
+} from "../services/oneExerciseMenu.js";
 import type { User, WorkoutMenu } from "../types.js";
 
 export const menus = new Hono();
@@ -22,7 +28,7 @@ menus.get("/", async (c) => {
   );
 });
 
-// 運動レベルに対応するGIFトレーニングを1つだけ返す
+// 今日のメニューを返す。運動レベルのメニューから1種目だけ (クリアするまで同じ種目)
 menus.get("/today", async (c) => {
   const userId = getUserId(c);
   const userDoc = await db.collection(COLLECTIONS.users).doc(userId).get();
@@ -41,7 +47,14 @@ menus.get("/today", async (c) => {
     .get();
   if (snapshot.empty) return c.json({ error: "Workout menu not found" }, 404);
   const doc = snapshot.docs[0];
-  return c.json({ id: doc.id, ...doc.data() } as WorkoutMenu);
+  const menu = { id: doc.id, ...doc.data() } as WorkoutMenu;
+  // まだ種目が決まっていなければ抽選して保存する。決まっていればそのまま (レベル切り替えや再読み込みでは変わらない)
+  let index = assignedExerciseIndex(user, menu);
+  if (index === null) {
+    index = pickExerciseIndex(menu);
+    await userDoc.ref.update({ [assignedExerciseField(menu)]: index });
+  }
+  return c.json(buildOneExerciseMenu(menu, index));
 });
 
 menus.get("/:id", async (c) => {

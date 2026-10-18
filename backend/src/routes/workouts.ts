@@ -9,7 +9,13 @@ import {
   xpToNextLevel,
 } from "../services/progress.js";
 import { buildCustomMenu, CUSTOM_MENU_ID, hasCustomMenu } from "../services/customMenu.js";
-import { buildOneExerciseMenu, parseOneExerciseMenuId } from "../services/oneExerciseMenu.js";
+import {
+  assignedExerciseField,
+  assignedExerciseIndex,
+  buildOneExerciseMenu,
+  parseOneExerciseMenuId,
+  pickExerciseIndex,
+} from "../services/oneExerciseMenu.js";
 import type { Intensity, User, WorkoutLog, WorkoutMenu } from "../types.js";
 
 export const workouts = new Hono();
@@ -37,6 +43,8 @@ workouts.post("/", async (c) => {
 
     // カスタムメニューはユーザーの設定から組み立てる
     let menu: WorkoutMenu;
+    // 1種目メニューをクリアしたら、次の種目を抽選し直す (更新するフィールド名と値)
+    let nextAssignment: Record<string, number> = {};
     if (menu_id === CUSTOM_MENU_ID) {
       if (!hasCustomMenu(user.custom_menu)) return null;
       menu = buildCustomMenu(user.custom_menu);
@@ -48,6 +56,13 @@ workouts.post("/", async (c) => {
       menu = { id: menuDoc.id, ...menuDoc.data() } as WorkoutMenu;
       if (single) {
         if (single.index >= menu.exercises.length) return null;
+        // 割り当て中の種目をクリアしたときだけ引き直す (直前と同じ種目は避ける)
+        const assigned = assignedExerciseIndex(user, menu);
+        if (assigned === null || assigned === single.index) {
+          nextAssignment = {
+            [assignedExerciseField(menu)]: pickExerciseIndex(menu, single.index),
+          };
+        }
         menu = buildOneExerciseMenu(menu, single.index);
       }
     }
@@ -76,6 +91,7 @@ workouts.post("/", async (c) => {
       user_level: updatedUser.user_level,
       current_streak: updatedUser.current_streak,
       last_workout_at: updatedUser.last_workout_at,
+      ...nextAssignment,
     });
 
     return {
