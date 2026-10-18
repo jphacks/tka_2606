@@ -30,7 +30,6 @@ function App() {
   const [tab, setTab] = useState<Tab>("home");
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState("");
-  const [homeBgmOn, setHomeBgmOn] = useState(true);
   const homeBgmRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -48,12 +47,12 @@ function App() {
   useEffect(() => {
     const audio = homeBgmRef.current;
     if (!audio) return;
-    if (isHomeLike && homeBgmOn) {
+    if (isHomeLike) {
       audio.play().catch(() => {});
     } else {
       audio.pause();
     }
-  }, [isHomeLike, homeBgmOn]);
+  }, [isHomeLike]);
 
   // 起動時にログイン中か確認する
   useEffect(() => {
@@ -173,14 +172,6 @@ function App() {
 
       {showTabs && (
         <nav className="bottom-tabs">
-          <button
-            className="tab-button bgm-toggle"
-            onClick={() => setHomeBgmOn((v) => !v)}
-            aria-label={homeBgmOn ? "BGM オフ" : "BGM オン"}
-          >
-            <span className="tab-icon">{homeBgmOn ? "🔊" : "🔇"}</span>
-            <span className="tab-label">BGM</span>
-          </button>
           <button
             className={`tab-button ${tab === "home" ? "active" : ""}`}
             onClick={() => setTab("home")}

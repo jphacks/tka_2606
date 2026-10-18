@@ -110,7 +110,6 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
   const elapsed = elapsedMs / 1000;
 
   const bgmRef = useRef<HTMLAudioElement | null>(null);
-  const [bgmOn, setBgmOn] = useState(true);
 
   useEffect(() => {
     const audio = new Audio(bgmSrc);
@@ -127,12 +126,12 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
   useEffect(() => {
     const audio = bgmRef.current;
     if (!audio) return;
-    if (paused || !bgmOn || finished.current || inCountdown) {
+    if (paused || finished.current || inCountdown) {
       audio.pause();
     } else {
       audio.play().catch(() => {});
     }
-  }, [paused, bgmOn, inCountdown]);
+  }, [paused, inCountdown]);
 
   const handleFinishWithBgm = useCallback(() => {
     bgmRef.current?.pause();
@@ -223,14 +222,9 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
         <button onClick={() => setElapsedMs(segmentEnd * 1000)}>
           スキップ
         </button>
-        <div className="workout-controls">
-          <button onClick={() => setPaused(!paused)}>
-            {paused ? "再開" : "一時停止"}
-          </button>
-          <button onClick={() => setBgmOn((v) => !v)}>
-            {bgmOn ? "♪ BGM オフ" : "♪ BGM オン"}
-          </button>
-        </div>
+        <button onClick={() => setPaused(!paused)}>
+          {paused ? "再開" : "一時停止"}
+        </button>
       </div>
     );
   }
@@ -252,14 +246,9 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
       <p className="sub">
         次: {next ? `休憩${REST_SEC}秒 → ${next.name}` : "ラスト！"}
       </p>
-      <div className="workout-controls">
-        <button onClick={() => setPaused(!paused)}>
-          {paused ? "再開" : "一時停止"}
-        </button>
-        <button onClick={() => setBgmOn((v) => !v)}>
-          {bgmOn ? "♪ BGM オフ" : "♪ BGM オン"}
-        </button>
-      </div>
+      <button onClick={() => setPaused(!paused)}>
+        {paused ? "再開" : "一時停止"}
+      </button>
       <img
         className="workout-gif"
         src={WORKOUT_IMAGES[current.image]}
