@@ -142,6 +142,7 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
           1種目め: <strong>{first.name}</strong>
         </p>
         <img className="workout-gif" src={WORKOUT_IMAGES[first.image]} alt={first.name} />
+        <button onClick={() => setElapsedMs(0)}>すぐ始める</button>
       </div>
     );
   }
