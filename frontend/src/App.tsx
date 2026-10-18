@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ApiError, api } from "./api/client";
+import { api } from "./api/client";
 import homeBgmSrc from "./assets/audio/listening-to-the-rain_c55a55c1.mp3";
 import { HomeScreen } from "./screens/HomeScreen";
 import { LoginScreen } from "./screens/LoginScreen";
@@ -74,14 +74,9 @@ function App() {
         setUser(user);
         setScreen({ name: "home" });
       })
-      .catch((e) => {
-        if (!(e instanceof ApiError && e.status === 401)) {
-          setError((e as Error).message);
-        } else if (loginParams.has("login_error")) {
-          setError("ログインに失敗しました。もう一度お試しください");
-        }
-        setScreen({ name: "login" });
-      });
+      // ログインしていないとき (サーバーにつながらないときも) はログイン画面を出す
+      // トップページにはエラーの赤文字は出さない
+      .catch(() => setScreen({ name: "login" }));
   }, []);
 
   const handleLogout = async () => {
@@ -134,7 +129,7 @@ function App() {
       case "loading":
         return <p>読み込み中...</p>;
       case "login":
-        return <LoginScreen />;
+        return <LoginScreen loginFailed={loginParams.has("login_error")} />;
       case "home":
         if (!user) return null;
         if (tab === "training-list") {

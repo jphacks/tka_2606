@@ -1372,16 +1372,164 @@ button.primary {
   }
 }
 
-/* ログイン画面のロゴ */
+/* ===== ログイン前のトップページ ===== */
+.login {
+  --login-red: #ff3535;
+  --login-orange: #ff9a4d;
+  --login-text: #3a1f14;
+  --login-sub: #8a5a44;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  min-height: calc(100svh - 104px);
+  text-align: center;
+  color: var(--login-text);
+}
+
+@media (prefers-color-scheme: dark) {
+  .login {
+    --login-text: #fff3ec;
+    --login-sub: #f0b89c;
+  }
+}
+
+/* 背景でゆっくり動く、ロゴと同じ赤〜オレンジのぼかし */
+.login-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: linear-gradient(180deg, #fff6ef 0%, #ffe9dc 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-bg {
+    background: linear-gradient(180deg, #1d1210 0%, #2a1610 100%);
+  }
+}
+
+.login-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+  animation: login-float 12s ease-in-out infinite alternate;
+}
+
+.login-blob-1 {
+  top: -80px;
+  left: -60px;
+  width: 280px;
+  height: 280px;
+  background: var(--login-red);
+}
+
+.login-blob-2 {
+  top: 30%;
+  right: -100px;
+  width: 300px;
+  height: 300px;
+  background: var(--login-orange);
+  animation-delay: -4s;
+}
+
+.login-blob-3 {
+  bottom: -100px;
+  left: 20%;
+  width: 260px;
+  height: 260px;
+  background: #ffc46b;
+  animation-delay: -8s;
+}
+
+@keyframes login-float {
+  to {
+    transform: translate(40px, 30px) scale(1.15);
+  }
+}
+
 .login-logo {
   width: 100%;
-  margin: 24px 0 8px;
+  margin: 8px 0 0;
+  animation: login-drop 0.7s cubic-bezier(0.2, 1.3, 0.4, 1) backwards;
 }
 
 .login-logo img {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 16px;
-  box-shadow: var(--shadow);
+  border-radius: 20px;
+  box-shadow: 0 16px 40px -12px rgba(255, 60, 30, 0.55);
 }
+
+@keyframes login-drop {
+  from {
+    transform: translateY(-24px) scale(0.92);
+    opacity: 0;
+  }
+}
+
+@keyframes login-rise {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+
+/* Google ボタンは白地にして、目立つように影を付ける */
+.login-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 16px;
+  border: none;
+  border-radius: 999px;
+  background: #fff;
+  color: #3c4043;
+  font-size: 17px;
+  font-weight: bold;
+  box-shadow:
+    0 0 0 3px rgba(255, 90, 50, 0.35),
+    0 10px 24px -8px rgba(255, 60, 30, 0.6);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+  animation: login-rise 0.5s ease-out 0.3s backwards;
+}
+
+.login-google:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 4px rgba(255, 90, 50, 0.5),
+    0 14px 28px -8px rgba(255, 60, 30, 0.7);
+}
+
+.login-google:active {
+  transform: translateY(1px);
+}
+
+.login-google svg {
+  width: 22px;
+  height: 22px;
+}
+
+.login-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--login-sub);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-blob,
+  .login-logo,
+  .login-google {
+    animation: none;
+  }
+}
+
