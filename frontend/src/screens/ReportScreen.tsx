@@ -28,8 +28,11 @@ export function ReportScreen({ result, onBackHome }: Props) {
   const [xpPhase, setXpPhase] = useState<XpPhase>("before");
 
   // 今のレベルの中で何 XP たまっているか (レベルアップしたときは前のレベルから伸ばす)
+  // 1回で何レベルも上がることがあるので、運動前の XP から前のレベルを求める
   const xpNow = user.total_xp % XP_PER_LEVEL;
-  const xpBefore = xpNow - log.earned_xp + (leveled_up ? XP_PER_LEVEL : 0);
+  const totalXpBefore = user.total_xp - log.earned_xp;
+  const xpBefore = totalXpBefore % XP_PER_LEVEL;
+  const levelBefore = Math.floor(totalXpBefore / XP_PER_LEVEL) + 1;
   const xpWidth = {
     before: xpBefore,
     filling: leveled_up ? XP_PER_LEVEL : xpNow,
@@ -95,7 +98,7 @@ export function ReportScreen({ result, onBackHome }: Props) {
 
       <div className="clear-xp" style={{ animationDelay: `${XP_BAR_AT - 300}ms` }}>
         <div className="clear-xp-label">
-          <span>Lv. {xpPhase === "leveled" || !leveled_up ? user.user_level : user.user_level - 1}</span>
+          <span>Lv. {xpPhase === "leveled" ? user.user_level : levelBefore}</span>
           <span>
             次のレベルまで {XP_PER_LEVEL - (xpPhase === "before" ? xpBefore : xpNow)}XP
           </span>
