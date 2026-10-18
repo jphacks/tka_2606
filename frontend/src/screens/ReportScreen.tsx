@@ -89,11 +89,16 @@ export function ReportScreen({ result, onBackHome }: Props) {
         <span className="clear-streak-flame" aria-hidden="true">
           🔥
         </span>
-        <span>
-          <span className="clear-streak-before">{previous_streak}日</span>
-          {" → "}
+        {/* 今日2回目以降は連続日数が変わらないので、今の日数だけ出す */}
+        {previous_streak === user.current_streak ? (
           <strong className="clear-streak-after">{user.current_streak}日連続</strong>
-        </span>
+        ) : (
+          <span>
+            <span className="clear-streak-before">{previous_streak}日</span>
+            {" → "}
+            <strong className="clear-streak-after">{user.current_streak}日連続</strong>
+          </span>
+        )}
       </div>
 
       <div className="clear-xp" style={{ animationDelay: `${XP_BAR_AT - 300}ms` }}>
