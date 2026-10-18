@@ -1370,17 +1370,58 @@ button.primary {
   display: grid;
   place-items: center;
   z-index: 5;
-  animation: pet-flash 2.5s ease-out forwards;
   pointer-events: none;
 }
 
-@keyframes pet-flash {
-  0% { background: rgba(170, 59, 255, 0.6); }
-  40% { background: rgba(255, 255, 255, 0.9); }
-  100% { background: transparent; }
+/* 四角く塗らず、真ん中から丸い光がふわっと広がって消える (ふちはぼかして透明にする) */
+.pet-evolution-flash::before,
+.pet-evolution-flash::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.pet-evolution-flash::before {
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  /* closest-side: 丸の半径いっぱいで透明になる (ペットの場所からはみ出して四角く切れないように) */
+  background: radial-gradient(
+    circle closest-side,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 210, 120, 0.6) 40%,
+    transparent 75%
+  );
+  animation: pet-glow 2.5s ease-out forwards;
+}
+
+/* 光の輪が外へ広がる */
+.pet-evolution-flash::after {
+  width: 70px;
+  height: 70px;
+  margin: -35px 0 0 -35px;
+  border: 3px solid rgba(255, 170, 60, 0.9);
+  animation: pet-ring 1.2s ease-out 0.2s forwards;
+}
+
+@keyframes pet-glow {
+  0% { opacity: 0; transform: scale(0.3); }
+  25% { opacity: 1; transform: scale(1.05); }
+  60% { opacity: 0.8; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.1); }
+}
+
+@keyframes pet-ring {
+  0% { opacity: 1; transform: scale(0.3); }
+  100% { opacity: 0; transform: scale(1.5); }
 }
 
 .pet-evolution-text {
+  position: relative;
+  z-index: 1;
   font-size: 20px;
   font-weight: bold;
   color: var(--accent);
@@ -1400,7 +1441,8 @@ button.primary {
   .pet-bounce .pet-character,
   .pet-walk .pet-character,
   .pet-sparkle,
-  .pet-evolution-flash,
+  .pet-evolution-flash::before,
+  .pet-evolution-flash::after,
   .pet-evolution-text,
   .pet-bubble {
     animation: none;
