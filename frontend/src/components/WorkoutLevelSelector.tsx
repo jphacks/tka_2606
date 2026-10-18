@@ -66,7 +66,6 @@ export function WorkoutLevelSelector({
 
   return (
     <div className="level-selector">
-      <span className="sub">運動レベル</span>
       <div className="level-controls">
         <div className="segmented" role="radiogroup" aria-label="運動レベル">
           {WORKOUT_LEVELS.map(({ level, name }) => {
