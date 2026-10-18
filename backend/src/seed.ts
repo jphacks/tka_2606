@@ -1,7 +1,7 @@
 import { COLLECTIONS, db } from "./firebase.js";
 import type { WorkoutMenu } from "./types.js";
 
-const MENUS: WorkoutMenu[] = [
+export const MENUS: WorkoutMenu[] = [
   {
     id: "gif-workout-easy",
     title: "ゆるめトレーニング",

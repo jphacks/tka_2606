@@ -13,6 +13,14 @@ export type User = {
   current_streak: number;
   total_xp: number;
   last_workout_at: string | null;
+  custom_menu?: CustomMenu | null;
+};
+
+// 設定タブで作るカスタムメニュー
+export type CustomMenu = {
+  selected: boolean; // ホームの運動レベルで「カスタム」を選んでいるか
+  exercise_names: string[];
+  exercise_duration_sec: number;
 };
 
 export type Exercise = {

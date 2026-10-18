@@ -4,9 +4,10 @@ import { HomeScreen } from "./screens/HomeScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { ReportScreen } from "./screens/ReportScreen";
 import { ReportTabScreen } from "./screens/ReportTabScreen";
+import { SettingsScreen } from "./screens/SettingsScreen";
 import { TrainingListScreen } from "./screens/TrainingListScreen";
 import { WorkoutScreen } from "./screens/WorkoutScreen";
-import type { Intensity, User, WorkoutMenu, WorkoutResult } from "./types";
+import type { CustomMenu, Intensity, User, WorkoutMenu, WorkoutResult } from "./types";
 import "./App.css";
 
 type Screen =
@@ -16,7 +17,7 @@ type Screen =
   | { name: "workout"; menu: WorkoutMenu; intensity: Intensity }
   | { name: "report"; result: WorkoutResult };
 
-type Tab = "home" | "training-list" | "report-tab";
+type Tab = "home" | "training-list" | "report-tab" | "settings";
 
 // Google ログインに失敗して戻ってきたときは URL に login_error が付いている
 // 読み取ったら URL からは消しておく
@@ -57,8 +58,21 @@ function App() {
     }
   };
 
+  // ゆるめ等を選ぶと、カスタムの選択は外れる
   const updateWorkoutLevel = (workoutLevel: number) => {
-    setUser((u) => (u ? { ...u, workout_level: workoutLevel } : u));
+    setUser((u) =>
+      u
+        ? {
+            ...u,
+            workout_level: workoutLevel,
+            custom_menu: u.custom_menu ? { ...u.custom_menu, selected: false } : u.custom_menu,
+          }
+        : u,
+    );
+  };
+
+  const updateCustomMenu = (customMenu: CustomMenu) => {
+    setUser((u) => (u ? { ...u, custom_menu: customMenu } : u));
   };
 
   const handleFinishWorkout = useCallback(async () => {
@@ -91,6 +105,9 @@ function App() {
         if (tab === "report-tab") {
           return <ReportTabScreen onError={setError} />;
         }
+        if (tab === "settings") {
+          return <SettingsScreen user={user} onSaved={updateCustomMenu} onError={setError} />;
+        }
         return (
           <HomeScreen
             user={user}
@@ -98,6 +115,7 @@ function App() {
               setScreen({ name: "workout", menu, intensity })
             }
             onChangeWorkoutLevel={updateWorkoutLevel}
+            onSelectCustomMenu={updateCustomMenu}
             onLogout={handleLogout}
             onError={setError}
           />
@@ -150,6 +168,13 @@ function App() {
           >
             <span className="tab-icon">📊</span>
             <span className="tab-label">レポート</span>
+          </button>
+          <button
+            className={`tab-button ${tab === "settings" ? "active" : ""}`}
+            onClick={() => setTab("settings")}
+          >
+            <span className="tab-icon">⚙️</span>
+            <span className="tab-label">設定</span>
           </button>
         </nav>
       )}

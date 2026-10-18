@@ -8,6 +8,7 @@ import {
   startOfTodayJst,
   xpToNextLevel,
 } from "../services/progress.js";
+import { buildCustomMenu, CUSTOM_MENU_ID, hasCustomMenu } from "../services/customMenu.js";
 import type { Intensity, User, WorkoutLog, WorkoutMenu } from "../types.js";
 
 export const workouts = new Hono();
@@ -15,24 +16,34 @@ export const workouts = new Hono();
 // 運動完了を記録し、ストリーク・XP・レベルを更新する
 workouts.post("/", async (c) => {
   const userId = getUserId(c);
-  const { menu_id, intensity } = await c.req.json<{
+  const { menu_id, intensity: requestedIntensity } = await c.req.json<{
     menu_id: string;
     intensity: Intensity;
   }>();
-  if (!["low", "normal", "high"].includes(intensity)) {
+  if (!["low", "normal", "high"].includes(requestedIntensity)) {
     return c.json({ error: "Invalid intensity" }, 400);
   }
+  // カスタムメニューは設定で決めた秒数でやるので、強度は「普通」に固定する
+  const intensity: Intensity = menu_id === CUSTOM_MENU_ID ? "normal" : requestedIntensity;
 
   const userRef = db.collection(COLLECTIONS.users).doc(userId);
-  const menuRef = db.collection(COLLECTIONS.menus).doc(menu_id);
   const logRef = db.collection(COLLECTIONS.logs).doc();
 
   const result = await db.runTransaction(async (tx) => {
-    const [userDoc, menuDoc] = await Promise.all([tx.get(userRef), tx.get(menuRef)]);
-    if (!userDoc.exists || !menuDoc.exists) return null;
-
+    const userDoc = await tx.get(userRef);
+    if (!userDoc.exists) return null;
     const user = { id: userDoc.id, ...userDoc.data() } as User;
-    const menu = { id: menuDoc.id, ...menuDoc.data() } as WorkoutMenu;
+
+    // カスタムメニューはユーザーの設定から組み立てる
+    let menu: WorkoutMenu;
+    if (menu_id === CUSTOM_MENU_ID) {
+      if (!hasCustomMenu(user.custom_menu)) return null;
+      menu = buildCustomMenu(user.custom_menu);
+    } else {
+      const menuDoc = await tx.get(db.collection(COLLECTIONS.menus).doc(menu_id));
+      if (!menuDoc.exists) return null;
+      menu = { id: menuDoc.id, ...menuDoc.data() } as WorkoutMenu;
+    }
     const now = new Date();
 
     const log: Omit<WorkoutLog, "id"> = {

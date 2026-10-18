@@ -18,7 +18,7 @@ app.use(
   "/*",
   cors({
     origin: env.FRONTEND_URL,
-    allowMethods: ["GET", "POST", "DELETE", "OPTIONS", "PATCH"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowHeaders: ["Content-Type"],
     credentials: true, // セッション Cookie を受け取る
   }),

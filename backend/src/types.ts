@@ -14,6 +14,14 @@ export type User = {
   current_streak: number;
   total_xp: number;
   last_workout_at: string | null; // ISO文字列
+  custom_menu?: CustomMenu | null; // 設定タブで作るカスタムメニュー (未設定なら undefined)
+};
+
+// 設定タブで作るカスタムメニュー。ホームの運動レベルで「カスタム」を選ぶと、今日のメニューがこれになる
+export type CustomMenu = {
+  selected: boolean; // ホームで「カスタム」を選んでいるか (ゆるめ等を選ぶと false になる)
+  exercise_names: string[]; // やりたい種目 (Exercise.name) を順番どおりに。最大 CUSTOM_MENU_MAX_EXERCISES 個
+  exercise_duration_sec: number; // 1種目あたりの時間 (CUSTOM_MENU_DURATIONS のどれか)
 };
 
 export type Exercise = {
