@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TimerRing } from "../components/TimerRing";
 import type { Intensity, WorkoutMenu } from "../types";
+import bgmSrc from "../assets/audio/bodyweight-training-ii_1cfde3fa.mp3";
 import standingForwardBend from "../assets/workouts/standing-forward-bend.gif";
 import abs from "../assets/workouts/abs.gif";
 import highKnees from "../assets/workouts/high-knees.gif";
@@ -104,6 +105,35 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
   const finished = useRef(false);
   const elapsed = elapsedMs / 1000;
 
+  const bgmRef = useRef<HTMLAudioElement | null>(null);
+  const [bgmOn, setBgmOn] = useState(true);
+
+  useEffect(() => {
+    const audio = new Audio(bgmSrc);
+    audio.loop = true;
+    audio.volume = 0.4;
+    bgmRef.current = audio;
+    return () => {
+      audio.pause();
+      audio.src = "";
+    };
+  }, []);
+
+  useEffect(() => {
+    const audio = bgmRef.current;
+    if (!audio) return;
+    if (paused || !bgmOn || finished.current) {
+      audio.pause();
+    } else {
+      audio.play().catch(() => {});
+    }
+  }, [paused, bgmOn]);
+
+  const handleFinishWithBgm = useCallback(() => {
+    bgmRef.current?.pause();
+    onFinish();
+  }, [onFinish]);
+
   // 実際に経った時間を足していく (タブが裏に回って setInterval が遅れてもずれない)
   useEffect(() => {
     if (paused) return;
@@ -120,9 +150,9 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
   useEffect(() => {
     if (elapsed >= totalSec && !finished.current) {
       finished.current = true;
-      onFinish();
+      handleFinishWithBgm();
     }
-  }, [elapsed, totalSec, onFinish]);
+  }, [elapsed, totalSec, handleFinishWithBgm]);
 
   // 経過時間から現在の区切りと残り時間を求める
   let index = 0;
@@ -169,9 +199,14 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
         <button onClick={() => setElapsedMs(segmentEnd * 1000)}>
           スキップ
         </button>
-        <button onClick={() => setPaused(!paused)}>
-          {paused ? "再開" : "一時停止"}
-        </button>
+        <div className="workout-controls">
+          <button onClick={() => setPaused(!paused)}>
+            {paused ? "再開" : "一時停止"}
+          </button>
+          <button onClick={() => setBgmOn((v) => !v)}>
+            {bgmOn ? "♪ BGM オフ" : "♪ BGM オン"}
+          </button>
+        </div>
       </div>
     );
   }
@@ -193,9 +228,14 @@ export function WorkoutScreen({ menu, intensity, onFinish }: Props) {
       <p className="sub">
         次: {next ? `休憩${REST_SEC}秒 → ${next.name}` : "ラスト！"}
       </p>
-      <button onClick={() => setPaused(!paused)}>
-        {paused ? "再開" : "一時停止"}
-      </button>
+      <div className="workout-controls">
+        <button onClick={() => setPaused(!paused)}>
+          {paused ? "再開" : "一時停止"}
+        </button>
+        <button onClick={() => setBgmOn((v) => !v)}>
+          {bgmOn ? "♪ BGM オフ" : "♪ BGM オン"}
+        </button>
+      </div>
       <img
         className="workout-gif"
         src={WORKOUT_IMAGES[current.image]}

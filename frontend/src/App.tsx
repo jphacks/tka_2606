@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, api } from "./api/client";
+import homeBgmSrc from "./assets/audio/listening-to-the-rain_c55a55c1.mp3";
 import { HomeScreen } from "./screens/HomeScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { ReportScreen } from "./screens/ReportScreen";
@@ -29,6 +30,30 @@ function App() {
   const [tab, setTab] = useState<Tab>("home");
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState("");
+  const [homeBgmOn, setHomeBgmOn] = useState(true);
+  const homeBgmRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const audio = new Audio(homeBgmSrc);
+    audio.loop = true;
+    audio.volume = 0.3;
+    homeBgmRef.current = audio;
+    return () => {
+      audio.pause();
+      audio.src = "";
+    };
+  }, []);
+
+  const isHomeLike = screen.name === "home" || screen.name === "login";
+  useEffect(() => {
+    const audio = homeBgmRef.current;
+    if (!audio) return;
+    if (isHomeLike && homeBgmOn) {
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
+  }, [isHomeLike, homeBgmOn]);
 
   // 起動時にログイン中か確認する
   useEffect(() => {
@@ -148,6 +173,14 @@ function App() {
 
       {showTabs && (
         <nav className="bottom-tabs">
+          <button
+            className="tab-button bgm-toggle"
+            onClick={() => setHomeBgmOn((v) => !v)}
+            aria-label={homeBgmOn ? "BGM オフ" : "BGM オン"}
+          >
+            <span className="tab-icon">{homeBgmOn ? "🔊" : "🔇"}</span>
+            <span className="tab-label">BGM</span>
+          </button>
           <button
             className={`tab-button ${tab === "home" ? "active" : ""}`}
             onClick={() => setTab("home")}
